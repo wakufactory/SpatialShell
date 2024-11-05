@@ -1,9 +1,12 @@
-// server.js
+// SPATIAL SHELL Server
+//   wakufactory 2024 
+
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// express server 
 const app = express();
 const PORT = 3000;
 
