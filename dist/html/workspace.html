@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Spatial shell viewer</title>
+<title>Spatial shell workspace</title>
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js" crossorigin></script>
 <script src="js/grab2.js?2"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
@@ -10,11 +10,58 @@
 <script type=module>
 const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
+const eventSource = new EventSource('/events');
 
 const objs = [] 
-
+// サーバからのpush API　
+eventSource.onmessage = async  (event) => {
+		const data = JSON.parse(event.data) ;
+		const pid = data.pid 
+		console.log(data) ;
+		switch(data.cmd) {
+			case "open":
+				const cinst = await APP.addobj({'path':data.path,'param':data.p})
+				objs.push({'pid':pid,'inst':cinst,'data':data})
+				console.log(objs) 
+				break ;
+			case "update":
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`reload ${pid}`)
+						o.inst.app.reloadComponent()
+					}
+				})
+				break ;
+			case "param":
+				objs.forEach(o=>{
+				if(o.pid == pid ) {
+					console.log(`setparam ${pid}`)
+					for(let k in data.param) {
+						const v = data.param[k] 
+						o.inst.app[k] = parseFloat(v)!=NaN?parseFloat(v):v
+						console.log(`set ${k} to ${data.param[k]}`)
+					}
+				}
+			})
+			break ;	
+				break ;
+			case "kill":
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`remove ${pid}`)
+						$('#base').removeChild(o.inst.el) 
+					}
+				})
+				break ;
+			case "clear":
+				$('#base').innerHTML = "" 
+				objs.length = 0 
+				break ;
+		}
+		
+};
 // scene vue app
-const app= Vue.createApp({
+const APP = Vue.createApp({
 	created() {
 	},
 	data() {
@@ -88,29 +135,13 @@ const app= Vue.createApp({
 	}
 })
 
-const initdata = [{
-	'path':"./apps/instobj1.js",
-	'p':{'basescale':0.5} 
-},
-{
-	'path':"./apps/clock.js",
-	'p':{} 
-},
-]
-
-onload =  function() {
-	$('a-scene').addEventListener("loaded", ev=>{
+onload = function() {
+	$('a-scene').addEventListener("loaded",ev=>{
 		console.log("scene loaded")
-		window.APP = app.mount('#reactive') // set global APP reference
-		APP.bg_kind = 'space' 
-		
-		initdata.forEach(async data=>{
-			const cinst = await APP.addobj({'path':data.path,'param':data.p})
-			objs.push({'pid':pid,'inst':cinst,'data':data})			
-		})
+		window.APP = APP.mount('#reactive') // set global APP reference
+		window.APP.bg_kind = 'space' 
 	})
 }//onload
-
 
 </script>
 <style>
@@ -140,7 +171,7 @@ stat>
 
 <!--reactive objects-->
 <a-entity id=reactive>
-	<div id=stat>SpatialShell viewer v001 stat {{stat_calls}}calls {{stat_poly}}△	</div>
+	<div id=stat>SpatialShell Workspace v001 stat {{stat_calls}}calls {{stat_poly}}△	</div>
 	
 	<!--app base -->
 	<a-entity id=base  position="0 0 -0.3"  scale="1 1 1" rotation="0 0 0">
