@@ -25,8 +25,8 @@ const appPath = "./apps/"
 
 // ssl用秘密鍵と証明書の読み込み
 const options = {
-		key: Fs.readFileSync(Path.join(__dirname, 'key.pem')),
-		cert: Fs.readFileSync(Path.join(__dirname, 'cert.pem'))
+		key: Fs.readFileSync(Path.join(staticDir, '../key.pem')),
+		cert: Fs.readFileSync(Path.join(staticDir, '../cert.pem'))
 };
 
 // サーバルーティング
