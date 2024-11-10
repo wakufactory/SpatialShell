@@ -1,15 +1,14 @@
-
 /*
 	SPATIAL SHELL APP
 	instancing object 1
-*/
-export default {
-	props:{ 
+*/  
+export default {  
+	props:{  
 		pscale:Number,
-	}, 
+	},  
 	methods:{
 		scale() {
-			return `${this.pscale} ${this.pscale} ${this.pscale}`
+			return `${this.pscale} ${this.pscale} ${this.pscale}` 
 		}
 	},
 	template: `<a-entity :scale="scale()"  position="0 .02 0" >
@@ -38,12 +37,12 @@ AFRAME.registerComponent('instancing',{
 		const mtx = new THREE.Matrix4()
 		const mtx2 = new THREE.Matrix4()
 		const mtx3 = new THREE.Matrix4()
-		const col = new THREE.Color()
+		const col = new THREE.Color() 
 		for(let i=0;i<this.data.count;i++) {
-			const sc = 1-(i/this.data.count)*0.4
-			mtx.makeRotationY((time-this.timeofs)/8000*i)
+			const sc = (1-(i/this.data.count)*0.4)*2
+			mtx.makeRotationY((time-this.timeofs)/20000*i)
 			mtx.multiply(mtx3.makeScale(sc,sc,sc))
-			mtx.multiply(mtx2.makeTranslation((i)*0.1*(2+Math.sin(time/300)*0.2),i*0.02,0))
+			mtx.multiply(mtx2.makeTranslation((1-i)*0.1*(2+Math.sin(time/300)*0.2),i*0.02,0))
 			this.mesh.setMatrixAt( i, mtx )
 			col.setRGB(i/this.data.count,1-i/this.data.count,(Math.sin(time/3000)+1)/2)
 			this.mesh.setColorAt(i,col)
