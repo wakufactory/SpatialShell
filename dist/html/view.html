@@ -11,15 +11,51 @@ const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
 const eventSource = new EventSource('/events');
 
-eventSource.onmessage = (event) => {
+const objs = [] 
+// サーバからのpush API　
+eventSource.onmessage = async  (event) => {
 		const data = JSON.parse(event.data) ;
+		const pid = data.pid 
 		console.log(data) ;
 		switch(data.cmd) {
 			case "open":
-				APP.addobj({'path':data.p.path,'param':{'basescale':1}})
+				const cinst = await APP.addobj({'path':data.path,'param':data.p})
+				objs.push({'pid':pid,'inst':cinst,'data':data})
+				console.log(objs) 
 				break ;
 			case "update":
-			
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`reload ${pid}`)
+						o.inst.app.reloadComponent()
+					}
+				})
+				break ;
+			case "param":
+				objs.forEach(o=>{
+				if(o.pid == pid ) {
+					console.log(`setparam ${pid}`)
+					for(let k in data.param) {
+						const v = data.param[k] 
+						o.inst.app[k] = parseFloat(v)!=NaN?parseFloat(v):v
+						console.log(`set ${k} to ${data.param[k]}`)
+					}
+				}
+			})
+			break ;	
+				break ;
+			case "kill":
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`remove ${pid}`)
+						$('#base').removeChild(o.inst.el) 
+					}
+				})
+				break ;
+			case "clear":
+				$('#base').innerHTML = "" 
+				objs.length = 0 
+				break ;
 		}
 		
 };
@@ -40,8 +76,6 @@ const app= Vue.createApp({
 		// create new app instance
 		async addobj(param) {
 			console.log(param)
-			const ImportObj = (await import(param.path+(DEBUG?("?"+new Date().getTime()):""))).default
-//			console.log(ImportObj)
 			const prop = {
 				scale:1,
 				basescale:param.param.basescale?param.param.basescale:1, 
@@ -50,19 +84,39 @@ const app= Vue.createApp({
 			console.log(prop)
 			const propstr = [':pscale="scale*basescale"']
 			for(let k in param.param) {
-				if(prop[k]) continue 
+//				if(prop[k]) continue 
 				prop[k] = param.param[k] ;
-				propstr.push( `:${k}="${k}"`)
+				propstr.push(parseFloat(prop[k])!=NaN?`:${k}=${k}`:`:${k}="${k}"`)
 			}
 			console.log(propstr) 
 			const app2 = Vue.createApp({
 				data() {
+					prop.key = 0
+					prop.comppath = param.path
+					prop.ccompo = null
 					return prop
 				},
-				components: { ImportObj },
+				created() {
+					this.loadComponent(); // コンポーネントの初期ロード
+				},
+				methods:{
+					async loadComponent() {
+						// 現在時刻をクエリパラメータとして付加し、キャッシュを防止
+						const timestamp = new Date().getTime();
+					
+						// 動的にコンポーネントをインポートし、キャッシュを避ける
+						const module = await import(`${this.comppath}?${timestamp}`);
+						console.log(module.default)
+						this.ccompo = module.default;
+					},
+					async reloadComponent() {
+						await this.loadComponent();
+						this.componentKey += 1; // キーを更新して再描画をトリガー
+					}					
+				},
 				template: `<a-box width=0.02 height=0.02 depth=0.02  :color="hcolor" opacity=0.8  grabbable2="distance:.04" ss_grabbase>
 					<a-entity position="0 0.01 0" >
-						<ImportObj ${propstr.join(" ")} ></ImportObj>
+						<component :key=key :is=ccompo ${propstr.join(" ")} />
 					</a-entity>
 				</a-box>`
 			})
@@ -176,16 +230,13 @@ stat>
 	<a-entity id=base  position="0 0 -0.3"  scale="1 1 1" rotation="0 0 0">
 	</a-entity>
 	<!-- background -->
-	<a-entity id=background>
+	<a-entity id=background noar>
 		<a-entity v-if="bg_kind=='space'" id=bg_space >
 			<!--floor-->
 			<a-plane  position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
 			<!--sky-->
 			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg_mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
 		</a-entity>
-		<a-entity id=bg_photo v-if="bg_kind=='p360'" >
-			<a-sky :material="`shader:flat;transparent:true;opacity:${bg_mix};src:#photo360;repeat:-1 1`" radius="110" segments-height="20" segments-width="40" rotation="0 90 0"></a-sky>
-		</a-entity>	
 	</a-entity>
 	
 	<!--lights-->
