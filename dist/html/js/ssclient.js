@@ -77,10 +77,10 @@ export const APP = Vue.createApp({
 // A-Frame components 
 AFRAME.registerComponent('stat', {
 	tick:function() {
-		if(!APP) return 
+		if(!APPINST) return 
 		let info = this.el.sceneEl.renderer.info.render
-		APP.stat_calls = info.calls 
-		APP.stat_poly = info.triangles 
+		APPINST.stat_calls = info.calls 
+		APPINST.stat_poly = info.triangles 
 	}	
 })
 AFRAME.registerComponent('ss_grabbase', {

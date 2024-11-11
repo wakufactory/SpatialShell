@@ -13,7 +13,7 @@ const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
 const eventSource = new EventSource('/events');
 
-const objs = [] 
+let objs = [] 
 // サーバからのpush API　
 eventSource.onmessage = async  (event) => {
 		const data = JSON.parse(event.data) ;
@@ -47,11 +47,12 @@ eventSource.onmessage = async  (event) => {
 			break ;	
 				break ;
 			case "kill":
-				objs.forEach(o=>{
+				objs = objs.filter(o=>{
 					if(o.pid == pid ) {
 						console.log(`remove ${pid}`)
 						$('#base').removeChild(o.inst.el) 
-					}
+						return false 
+					} else return true 
 				})
 				break ;
 			case "clear":
@@ -93,7 +94,6 @@ html,body {
 stat>
 	<a-assets>
 			<img id="floortex" src="assets/tex1024.png">
-			<img id="photo360" src="assets/IMG_20200104_162551_tamako.jpg">
 	</a-assets>
 
 <!--reactive objects-->
