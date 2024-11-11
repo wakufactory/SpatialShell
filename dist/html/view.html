@@ -6,7 +6,6 @@
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js" crossorigin></script>
 <script src="js/grab2.js?2"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
-
 <script type=module>
 const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
@@ -31,17 +30,14 @@ const initdata = [{
 ]
 
 const objs = [] 
-
-
-
 onload =  function() {
 	$('a-scene').addEventListener("loaded", ev=>{
 		console.log("scene loaded")
-		window.APPINST = APP.mount('#reactive') // set global APP reference
-		APPINST.bg_kind = 'space' 
-		
+		window.SPSHELL = APP.mount('#reactive') // set global APP reference
+		SPSHELL.bg_kind = 'space' 
+		SPSHELL.base_element = $('#base') 		
 		initdata.forEach(async data=>{
-			const cinst = await APPINST.addobj({'path':data.path,'param':data.p})
+			const cinst = await SPSHELL.addobj({'path':data.path,'param':data.p})
 			objs.push({'pid':data.pid,'inst':cinst,'data':data})			
 		})
 	})
@@ -81,8 +77,8 @@ stat>
 	<a-entity id=base  position="0 0 -0.3"  scale="1 1 1" rotation="0 0 0">
 	</a-entity>
 	<!-- background -->
-	<a-entity id=background noar>
-		<a-entity v-if="bg_kind=='space'" id=bg_space >
+	<a-entity id=background >
+		<a-entity v-if="bg_kind=='space'" id=bg_space noar>
 			<!--floor-->
 			<a-plane  position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
 			<!--sky-->
