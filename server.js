@@ -20,7 +20,7 @@ const staticDir = isPkg
 ? Path.join(Path.dirname(process.execPath), 'html/') // pkgバイナリの場合
 : Path.join(__dirname, 'dist/html/'); // Node.jsで起動した場合
 // appの置き場所
-const appPath = "./apps/"
+const appPath = "/apps/"
 
 
 // ssl用秘密鍵と証明書の読み込み
@@ -51,8 +51,8 @@ app.use((req, res, next) => {
 });
 
 // プロセス管理
-let pid = 1 
-let procs = [] 
+let pid = 1 	//プロセスid(連番)
+let procs = [] //プロセスリスト
 
 // ソースファイルの監視
 const watcher = Chokidar.watch([], {persistent: true});
@@ -96,11 +96,12 @@ app.get('/api/:command/:param?', (req, res) => {
 				console.log("watch "+fpath)
 				watcher.add(fpath)
 			}
-			// ビュアーにopenコマンド送信
+			// workspaceにopenコマンド送信
 			sendToAllClients({
 					'cmd':"open",'pid':pid,'path':path,'p':req.query
 				})
 			ret.pid = pid 
+			//プロセスリストに追加
 			procs.push({
 				'pid':pid++,
 				'app':app,
@@ -113,11 +114,11 @@ app.get('/api/:command/:param?', (req, res) => {
 			const kpid = parseInt(param) 
 			procs = procs.filter(p=>{
 				if(p.pid == kpid) {
-					// ビュアーにkillコマンド送信
+					// workspaceにkillコマンド送信
 					sendToAllClients({
 						'cmd':"kill",'pid':kpid
 					})	
-					return false 					
+					return false 
 				}
 				return true 
 			})
@@ -127,7 +128,7 @@ app.get('/api/:command/:param?', (req, res) => {
 			const ppid = parseInt(param) 
 			procs.forEach(p=>{
 				if(p.pid == ppid) {
-					// ビュアーにparamコマンド送信
+					// workspaceにparamコマンド送信
 					sendToAllClients({
 						'cmd':"param",'pid':ppid,'param':req.query
 					})			
