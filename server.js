@@ -31,9 +31,6 @@ const options = {
 
 // サーバルーティング
 
-// 静的ファイルを提供
-app.use(Express.static(staticDir));
-
 // カスタムログミドルウェア
 app.use((req, res, next) => {
 	console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} ${req.url}`);
@@ -42,13 +39,16 @@ app.use((req, res, next) => {
 
 // 追加のヘッダ
 app.use((req, res, next) => {
-	if (/plymodel\.js$/.test(req.path)) {  //header for plyload 
+	if (/\.js$/.test(req.path)) {  //header for plyload 
 		//将来的にはconfigに追い出すのがいいかも
 		res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
 		res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
 	}
 	next();
 });
+
+// 静的ファイルを提供
+app.use(Express.static(staticDir));
 
 // プロセス管理
 let pid = 1 	//プロセスid(連番)
@@ -70,9 +70,9 @@ watcher.on('change', path => {
 
 
 // REST API 外部コマンド
-app.get('/api/:command/:param?', (req, res) => {
+app.get('/api/:command', (req, res) => {
 	const command = req.params.command
-	const param = req.params.param
+	const param = req.query.commandopt
 	const ret = {
 			command: command,
 			param: param,
@@ -128,6 +128,7 @@ app.get('/api/:command/:param?', (req, res) => {
 			const ppid = parseInt(param) 
 			procs.forEach(p=>{
 				if(p.pid == ppid) {
+					for(k in req.query) p.param[k] = req.query[k]
 					// workspaceにparamコマンド送信
 					sendToAllClients({
 						'cmd':"param",'pid':ppid,'param':req.query
