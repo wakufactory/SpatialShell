@@ -21,9 +21,10 @@ eventSource.onmessage = async  (event) => {
 		console.log(data) ;
 		switch(data.cmd) {
 			case "open":
-				const cinst = await SPSHELL.addobj({'path':data.path,'param':data.p})
-				objs.push({'pid':pid,'inst':cinst,'data':data})
-				console.log(objs) 
+				const cinst = await SPSHELL.addobj({'pid':pid,'path':data.path,'param':data.p})
+				const obj = {'pid':pid,'inst':cinst,'data':data}
+				console.log(obj) 
+				objs.push(obj)
 				break ;
 			case "update":
 				objs.forEach(o=>{
