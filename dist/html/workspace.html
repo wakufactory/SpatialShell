@@ -118,7 +118,8 @@ stat>
 
 	<!--camera-->
 	<a-entity id="camrig"  position="0 1.2 0" vrheight > 
-		<a-entity id="camera" camera  look-controls="magicWindowTrackingEnabled:false" wasd-controls></a-entity>
+		<a-entity id="camera" camera  look-controls="magicWindowTrackingEnabled:false" 
+			wasd-controls="acceleration=1;fly:true;"></a-entity>
 		<!--vr controller-->
 		<a-entity oculus-touch-controls="hand: left; model:false"  grab2 ></a-entity>
 		<a-entity oculus-touch-controls="hand: right; model:true"  grab2 ></a-entity>
