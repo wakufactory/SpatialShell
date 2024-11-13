@@ -23,7 +23,8 @@ export default {
 	},
 	template: 	// A-Frame template 
 	'<a-entity :scale="scale()"  position="0 .06 0" > \
-		<a-box visible=true scale=".1 .1 .1" position="0 0.05 0"  :color="color" :ss-move="`speed:${speed};axis:${axis}`"></a-box> \
+		<a-box visible=true scale=".1 .1 .1" position="0 0.05 0" \
+			:color="color" :ss-move="`speed:${speed};axis:${axis}`"></a-box> \
 	</a-entity>'
 }
 
