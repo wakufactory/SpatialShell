@@ -23,22 +23,33 @@ export const APP = Vue.createApp({
 						cscale:1,
 						hcolor:"#ccc",
 						param:{'basescale':1},
+						grabbable:true,
+						issetpos:false,
+						sposition:{'x':0,'y':0,'z':0},
 						key:0,
 						comppath:	 appdata.path,
 						ccompo: null,
-						pid: appdata.pid 		
+						pid: appdata.pid,
+						compoel:null		
 					}
 				},
 				created() {
-					this.loadComponent(); // コンポーネントの初期ロード
+
 				},
 				methods:{
 					setparam(param) {
+						if(!param) return 
 						for(let k in param) {
 							const v = param[k] 
 							this.param[k] = isNaN(parseFloat(v))?v:parseFloat(v) ;
 							console.log(`set ${k} to ${param[k]}`)
-						}						
+							if(k=="grabbable") this.grabbable = param.grabbable=='false'?false:true 
+							if(k=="issetpos") this.issetpos = param.issetpos=='false'?false:true 
+							if(k=="posX") this.sposition.x = param.posX
+							if(k=="posY") this.sposition.y = param.posY
+							if(k=="posZ") this.sposition.z = param.posZ
+						}
+
 					},
 					async loadComponent() {
 						const timestamp = new Date().getTime();
@@ -50,31 +61,55 @@ export const APP = Vue.createApp({
 					async reloadComponent() {
 						await this.loadComponent();
 						this.componentKey += 1; // キーを更新して再描画をトリガー
-					}		
+					},
+					setpos() {
+//						console.log("setpos "+`${this.sposition.x} ${this.sposition.y} ${this.sposition.z}`)
+						return `${this.sposition.x} ${this.sposition.y} ${this.sposition.z}` 
+					}	
 				},
 				mounted() {
-					this.$refs.gbox.setAttribute("ss_grabbase","pid:"+this.pid)
+					if(this.grabbable) {
+						this.$refs.gbox.setAttribute("ss_grabbase","pid:"+this.pid)
 //					console.log(this.$refs.gbox.innerHTML) 
+					}
+					this.compoel = this.$refs.ccompo 
+					this.loadComponent(); // コンポーネントの初期ロード
 				},
-				template: `<a-box ref="gbox" width=0.02 height=0.02 depth=0.02  :color="hcolor" opacity=0.8  grabbable2="distance:.06" ss_grabbase>
-					<a-entity position="0 0.01 0" >
-						<component :key=key :is=ccompo :pscale="cscale*param.basescale" v-bind="param" />
+				template: `
+				<a-entity  v-if="grabbable">
+					<a-box ref="gbox" :position="setpos()" width=0.02 height=0.02 depth=0.02  :color="hcolor" material="transparent:true;opacity:0.7"  grabbable2="distance:.04" ss_grabbase>
+					<a-entity ref="base"  >
+						<component ref="ccompo" :key=key :is=ccompo :pscale="cscale*param.basescale" v-bind="param" />
 					</a-entity>
-				</a-box>`
+				</a-box>
+				</a-entity>
+				<a-entity v-else>
+					<a-entity ref="base" :position="setpos()" >
+						<component ref="ccompo" :key=key :is=ccompo :pscale="cscale*param.basescale" v-bind="param" />
+					</a-entity>				
+				</a-entity>
+				`
 			})
-			
-			//初期位置決め
-			const el = document.createElement("a-entity")
-			let posy = document.querySelector("[camera]").object3D.position.y	
-			if(posy==0) posy=1
-			el.setAttribute("position",`${this.posx} ${posy} 0`)
-			this.posx += 0.1 
-			if(this.posx > 0.3) this.posx -= 0.58
 
+			const el = document.createElement('a-entity')
+			this.base_element.appendChild(el)
 			const appinst = app2.mount(el)	//アプリマウント
-			appinst.setparam(appdata.param) //初期パラメータセット
-			this.base_element.appendChild(el) // DOMにappend
-			return {id:appdata.id,app:appinst,el:el,time:new Date().getTime()}
+			appinst.el = el 
+			appinst.setparam(appdata.param) //初期パラメータセット		
+			//初期位置決め
+			if(!appinst.issetpos&&appinst.grabbable) {
+
+				let posy = document.querySelector("[camera]").object3D.position.y	
+				if(posy==0) posy=1
+				appinst.sposition.x = this.posx;
+				appinst.sposition.y = posy
+				appinst.sposition.z = -0.3 
+				console.log(`initpos ${appinst.sposition.x} ${appinst.sposition.y} ${appinst.sposition.z}`)
+				this.posx += 0.1 
+				if(this.posx > 0.3) this.posx -= 0.58
+			}
+
+			return appinst 
 		},
 		// サービス関数 AFRAME.registerComponentのラッパ
 		registerComponent(name,data) {

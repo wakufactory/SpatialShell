@@ -73,6 +73,7 @@ watcher.on('change', path => {
 app.get('/api/:command', (req, res) => {
 	const command = req.params.command
 	const param = req.query.commandopt
+	req.query.commandopt = undefined  
 	const ret = {
 			command: command,
 			param: param,
@@ -88,8 +89,9 @@ app.get('/api/:command', (req, res) => {
 			const path = appPath + app 
 			const fpath = Path.join(staticDir,path)
 			if(!Fs.existsSync(fpath)) {
-				console.log(`command not found ${fpath}`)
-				ret.stat = "error"
+				console.log(`app not found ${fpath}`)
+				ret.stat = "cannot open app error"
+				res.json(ret);
 				break 
 			}
 			if(command=="edit") {// editの場合はファイル更新を監視
@@ -98,16 +100,18 @@ app.get('/api/:command', (req, res) => {
 			}
 			// workspaceにopenコマンド送信
 			sendToAllClients({
-					'cmd':"open",'pid':pid,'path':path,'p':req.query
+					'cmd':"open",'pid':pid,'path':path,'param':req.query
 				})
 			ret.pid = pid 
 			//プロセスリストに追加
 			procs.push({
 				'pid':pid++,
 				'app':app,
+				'path':path,
 				'fpath':fpath,
 				'param':req.query 
 			})
+			res.json(ret);
 			break 
 		// プロセス消去
 		case "kill":
@@ -122,6 +126,7 @@ app.get('/api/:command', (req, res) => {
 				}
 				return true 
 			})
+			res.json(ret);
 			break ;
 		//パラメータ送信
 		case "param":
@@ -135,6 +140,13 @@ app.get('/api/:command', (req, res) => {
 					})			
 				}
 			})
+			res.json(ret);
+			break ;
+		// 環境設定
+		case "env":
+			sendToAllClients({
+				'cmd':"env",'param':req.query 
+			})		
 			break ;
 		// 全プロセス消去
 		case "clear":
@@ -142,13 +154,20 @@ app.get('/api/:command', (req, res) => {
 				'cmd':"clear"
 			})
 			procs.length = 0 
+			res.json(ret);
 			break 	
 		// プロセス一覧取得
 		case "procs":
-			ret.procs = procs  
-			break 	
+			ret.procs = procs
+			if(param=="pp") res.send(JSON.stringify(procs,null,2)) ;
+			else res.json(ret) 
+			break 
+			
+		default:
+			ret.stat = "ng no command" 
+			res.json(ret) 
 	}
-	res.json(ret);
+
 });
 
 
@@ -197,6 +216,7 @@ app.get('/events', (req, res) => {
 
 
 // HTTPSサーバの起動
-Https.createServer(options, app).listen(PORT, () => {
-		console.log(`HTTPS Server is running on https://localhost:${PORT}`);
+const server = Https.createServer(options, app).listen(PORT, () => {
+
+		console.log(`SPATIAL SHELL Server is running on https://localhost:${PORT}`);
 });
