@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Spatial shell workspace</title>
+<title>SPATIAL SHELL playground</title>
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js" crossorigin></script>
 <script src="js/grab2.js?2"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
@@ -14,6 +14,7 @@ const DEBUG = true
 const eventSource = new EventSource('/events');
 
 let objs = [] 
+window.SSOBJS = objs 
 // サーバからのpush API　
 eventSource.onmessage = async  (event) => {
 		const data = JSON.parse(event.data) ;
@@ -21,7 +22,7 @@ eventSource.onmessage = async  (event) => {
 		console.log(data) ;
 		switch(data.cmd) {
 			case "open":
-				const cinst = await SPSHELL.addobj({'pid':pid,'path':data.path,'param':data.p})
+				const cinst = await SPSHELL.addobj({'pid':pid,'path':data.path,'param':data.param})
 				const obj = {'pid':pid,'inst':cinst,'data':data}
 				console.log(obj) 
 				objs.push(obj)
@@ -30,7 +31,7 @@ eventSource.onmessage = async  (event) => {
 				objs.forEach(o=>{
 					if(o.pid == pid ) {
 						console.log(`reload ${pid}`)
-						o.inst.app.reloadComponent()
+						o.inst.reloadComponent()
 					}
 				})
 				break ;
@@ -38,7 +39,7 @@ eventSource.onmessage = async  (event) => {
 				objs.forEach(o=>{
 					if(o.pid == pid ) {
 						console.log(`setparam ${pid}`)
-						o.inst.app.setparam(data.param) 
+						o.inst.setparam(data.param) 
 					}
 				})
 				break ;
@@ -51,6 +52,9 @@ eventSource.onmessage = async  (event) => {
 					} else return true 
 				})
 				break ;
+			case "env":
+				
+				break ;
 			case "clear":
 				$('#base').innerHTML = "" 
 				objs.length = 0 
@@ -59,11 +63,36 @@ eventSource.onmessage = async  (event) => {
 		
 };
 
+// API call to server 
+const SAPI = {
+	get:(cmd,param={}) =>{
+		const pstr = new URLSearchParams(param).toString() 
+		return new Promise((resolve,reject)=>{
+			const path = `/api/${cmd}?${pstr}`
+			fetch( path , {
+				method:"GET"
+			}).then( async resp=>{
+				resp.json().then(data=>{
+					resolve(data) 
+				})
+			})
+		})
+	}
+}
+
 onload = function() {
-	$('a-scene').addEventListener("loaded",ev=>{
+	$('a-scene').addEventListener("loaded",async ev=>{
 		console.log("scene loaded")
 		window.SPSHELL = APP.mount('#reactive') // set global APP reference
 		SPSHELL.base_element = $('#base') 
+
+		// resume procs 
+		const initdata = await SAPI.get("procs") 
+		console.log(initdata) 
+		initdata.procs.forEach(async data=>{
+			const cinst = await SPSHELL.addobj({'pid':data.pid,'path':data.path,'param':data.param})
+			objs.push({'pid':data.pid,'inst':cinst,'data':data})			
+		})
 	})
 }//onload
 
@@ -86,7 +115,7 @@ html,body {
 </head>
 <body>
 
-<a-scene  xr-mode-ui="XRMode:xr" device-orientation-permission-ui="enabled: false" background="color:#444")
+<a-scene  xr-mode-ui="XRMode:xr" device-orientation-permission-ui="enabled: false" background="color:#000")
 stat>
 	<a-assets>
 			<img id="floortex" src="assets/tex1024.png">
@@ -94,16 +123,16 @@ stat>
 
 <!--reactive objects-->
 <a-entity id=reactive>
-	<div id=stat>SpatialShell Workspace v001 stat {{stat_calls}}calls {{stat_poly}}△	</div>
+	<div id=stat>SPATIAL SHELL playground v01  [stat {{stat_calls}}calls {{stat_poly}}△	]</div>
 	
 	<!--app base -->
-	<a-entity id=base  position="0 0 -0.3"  scale="1 1 1" rotation="0 0 0">
+	<a-entity id=base  position="0 0 0"  scale="1 1 1" rotation="0 0 0">
 	</a-entity>
 	<!-- background -->
 	<a-entity id=background >
 		<a-entity v-if="bg_kind=='space'" id=bg_space noar>
 			<!--floor-->
-			<a-plane  position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
+			<a-plane visible=true position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
 			<!--sky-->
 			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg_mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
 		</a-entity>
