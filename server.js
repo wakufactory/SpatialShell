@@ -68,19 +68,47 @@ watcher.on('change', path => {
 	})
 });
 
+// URLエンコードされたデータを解析するミドルウェア
+app.use(Express.urlencoded({ extended: true })); // これで req.body にデータが格納される
 
 // REST API 外部コマンド
+// GET 
 app.get('/api/:command', (req, res) => {
 	const command = req.params.command
 	const param = req.query.commandopt
-	req.query.commandopt = undefined  
+	req.body.commandopt = undefined 
+	const aparam = req.query  
+	const ret = {
+			command: command,
+			param: param,
+			stat:"ok"
+	}
+	console.log("api get "+command) ;
+	switch(command) {
+		// プロセス一覧取得
+		case "procs":
+			ret.procs = procs
+			res.json(ret) 
+			break 
+		
+		default:
+			ret.stat = "ng no command" 
+			res.json(ret) 
+	}
+})
+// POST 
+app.post('/api/:command', (req, res) => {
+	const command = req.params.command
+	const param = req.body.commandopt
+	req.body.commandopt = undefined 
+	const aparam = req.body  
 	const ret = {
 			command: command,
 			param: param,
 			stat:"ok"
 	}
 
-	console.log("api "+command) ;
+	console.log("api post "+command) ;
 	switch(command) {
 		// プロセス起動
 		case "open":
@@ -100,7 +128,7 @@ app.get('/api/:command', (req, res) => {
 			}
 			// workspaceにopenコマンド送信
 			sendToAllClients({
-					'cmd':"open",'pid':pid,'path':path,'param':req.query
+					'cmd':"open",'pid':pid,'path':path,'param':aparam
 				})
 			ret.pid = pid 
 			//プロセスリストに追加
@@ -109,7 +137,7 @@ app.get('/api/:command', (req, res) => {
 				'app':app,
 				'path':path,
 				'fpath':fpath,
-				'param':req.query 
+				'param':aparam 
 			})
 			res.json(ret);
 			break 
@@ -133,10 +161,10 @@ app.get('/api/:command', (req, res) => {
 			const ppid = parseInt(param) 
 			procs.forEach(p=>{
 				if(p.pid == ppid) {
-					for(k in req.query) p.param[k] = req.query[k]
+					for(k in aparam) p.param[k] = aparam[k]
 					// workspaceにparamコマンド送信
 					sendToAllClients({
-						'cmd':"param",'pid':ppid,'param':req.query
+						'cmd':"param",'pid':ppid,'param':aparam
 					})			
 				}
 			})
@@ -145,8 +173,9 @@ app.get('/api/:command', (req, res) => {
 		// 環境設定
 		case "env":
 			sendToAllClients({
-				'cmd':"env",'param':req.query 
-			})		
+				'cmd':"env",'param':aparam
+			})
+			res.json(ret);
 			break ;
 		// 全プロセス消去
 		case "clear":

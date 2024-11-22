@@ -4,12 +4,12 @@ opt=$2
 shift 2
 params=("$@")  # 全ての引数を配列として取得
 
-curl_cmd=(curl -k "https://localhost:3000/api/$cmd" -G)
-curl_cmd+=(--data-urlencode "commandopt=$opt")
+curl_cmd=(curl -k -X POST "https://localhost:3000/api/$cmd" )
+curl_cmd+=(-d "commandopt=$opt")
 if [[ ${#} -ge 1 ]]; then
 	# 各パラメータを --data-urlencode として追加
 	for param in "${params[@]}"; do
-		curl_cmd+=(--data-urlencode "$param")
+		curl_cmd+=(-d "$param")
 	done
 fi
 
