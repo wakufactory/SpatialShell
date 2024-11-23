@@ -5,8 +5,13 @@ export const APP = Vue.createApp({
 	},
 	data() {
 		return {
-			bg_kind:"space",
-			bg_mix:1,
+			bg:{
+				kind:"default",
+				mix:1
+			},
+			light:{
+				default:true
+			},
 			posx:0,
 			stat_calls:0,
 			stat_poly:0,
@@ -118,6 +123,22 @@ export const APP = Vue.createApp({
 		}		
 	}
 })
+// API call to server 
+export const SAPI = {
+	get:(cmd,param={}) =>{
+		const pstr = new URLSearchParams(param).toString() 
+		return new Promise((resolve,reject)=>{
+			const path = `/api/${cmd}?${pstr}`
+			fetch( path , {
+				method:"GET"
+			}).then( async resp=>{
+				resp.json().then(data=>{
+					resolve(data) 
+				})
+			})
+		})
+	}
+}
 
 const $ = (o)=>document.querySelector(o)
 // A-Frame components 

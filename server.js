@@ -51,6 +51,11 @@ app.use((req, res, next) => {
 // 静的ファイルを提供
 app.use(Express.static(staticDir));
 
+// 環境状態 
+const env = {
+	bg:{kind:"default"},
+	light:{default:true}
+}
 // プロセス管理
 let pid = 1 	//プロセスid(連番)
 let procs = [] //プロセスリスト
@@ -91,7 +96,11 @@ app.get('/api/:command', (req, res) => {
 			ret.procs = procs
 			res.json(ret) 
 			break 
-		
+		// 環境設定取得
+		case "getenv":
+			ret.env = env
+			res.json(ret) 
+			break 			
 		default:
 			ret.stat = "ng no command" 
 			res.json(ret) 
@@ -101,7 +110,7 @@ app.get('/api/:command', (req, res) => {
 app.post('/api/:command', (req, res) => {
 	const command = req.params.command
 	const commandopt = req.body.commandopt
-	req.body.commandopt = undefined 
+	delete req.body.commandopt
 	const aparam = req.body  
 	const ret = {
 			command: command,
@@ -173,10 +182,13 @@ app.post('/api/:command', (req, res) => {
 			break ;
 		// 環境設定
 		case "env":
-
-			sendToAllClients({
-				'cmd':"env",'commandopt':commandopt,'param':aparam
-			})
+			if(env[commandopt]) {
+				for(k in aparam) env[commandopt][k] = aparam[k]
+				sendToAllClients({
+					'cmd':"env",'commandopt':commandopt,'param':aparam
+				})
+				console.log(env) 
+			}
 			res.json(ret);
 			break ;
 		// 全プロセス消去
@@ -193,7 +205,12 @@ app.post('/api/:command', (req, res) => {
 			if(commandopt=="pp") res.send(JSON.stringify(procs,null,2)) ;
 			else res.json(ret) 
 			break 
-			
+		// 環境設定取得
+		case "getenv":
+			ret.env = env
+			if(commandopt=="pp") res.send(JSON.stringify(env,null,2)) ;
+			else res.json(ret) 
+			break 		
 		default:
 			ret.stat = "ng no command" 
 			res.json(ret) 

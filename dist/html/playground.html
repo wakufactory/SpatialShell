@@ -7,7 +7,7 @@
 <script src="js/grab2.js?2"></script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
 <script type=module>
-import {APP} from './js/ssclient.js'
+import {APP,SAPI} from './js/ssclient.js'
 
 const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
@@ -53,30 +53,31 @@ eventSource.onmessage = async  (event) => {
 				})
 				break ;
 			case "env":
-				
-				break ;
+				const envdata = {}
+				envdata[data.commandopt] = data.param
+				setenv(envdata)
+				break
 			case "clear":
 				$('#base').innerHTML = "" 
 				objs.length = 0 
 				break ;
 		}
-		
 };
 
-// API call to server 
-const SAPI = {
-	get:(cmd,param={}) =>{
-		const pstr = new URLSearchParams(param).toString() 
-		return new Promise((resolve,reject)=>{
-			const path = `/api/${cmd}?${pstr}`
-			fetch( path , {
-				method:"GET"
-			}).then( async resp=>{
-				resp.json().then(data=>{
-					resolve(data) 
-				})
-			})
-		})
+const setenv = function(data) {
+	console.log(data) 
+	for(let k in data) {
+		const p = data[k] 
+		for(let pp in p) {
+			switch(k) {
+				case "bg":
+					if(pp=="kind") SPSHELL.bg.kind = p[pp]
+					break 
+				case "light":
+					if(pp=="default") SPSHELL.light.default = p[pp]==true||p[pp]=='true'
+					break
+			}
+		}
 	}
 }
 
@@ -86,6 +87,9 @@ onload = function() {
 		window.SPSHELL = APP.mount('#reactive') // set global APP reference
 		SPSHELL.base_element = $('#base') 
 
+		const env = await SAPI.get("getenv")
+		console.log(env.env) 
+		setenv(env.env) 
 		// resume procs 
 		const initdata = await SAPI.get("procs") 
 		console.log(initdata) 
@@ -130,16 +134,16 @@ stat>
 	</a-entity>
 	<!-- background -->
 	<a-entity id=background >
-		<a-entity v-if="bg_kind=='space'" id=bg_space noar>
+		<a-entity v-if="bg.kind=='default'" id=bg_space noar>
 			<!--floor-->
-			<a-plane visible=true position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
+			<a-plane visible=true position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg.mix}`"></a-plane>
 			<!--sky-->
-			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg_mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
+			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg.mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
 		</a-entity>
 	</a-entity>
 	
 	<!--lights-->
-	<a-entity id=light>
+	<a-entity v-if="light.default==true">
 		<a-entity light="type: ambient; color: #888"></a-entity>
 		<a-entity light="type: directional; color: #FFF; intensity: 0.6; castShadow:false;" position="-0.5 1 1"></a-entity>
 	</a-entity>
