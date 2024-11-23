@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>SPATIAL SHELL playground</title>
+<script src="https://aframe.io/releases/1.6.0/aframe.min.js" crossorigin></script>
+<script src="js/grab2.js?2"></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
+<script type=module>
+import {APP} from './js/ssclient.js'
+
+const $ = (o)=>document.querySelector(o)
+const DEBUG = true 
+const eventSource = new EventSource('/events');
+
+let objs = [] 
+window.SSOBJS = objs 
+// サーバからのpush API　
+eventSource.onmessage = async  (event) => {
+		const data = JSON.parse(event.data) ;
+		const pid = data.pid 
+		console.log(data) ;
+		switch(data.cmd) {
+			case "open":
+				const cinst = await SPSHELL.addobj({'pid':pid,'path':data.path,'param':data.param})
+				const obj = {'pid':pid,'inst':cinst,'data':data}
+				console.log(obj) 
+				objs.push(obj)
+				break ;
+			case "update":
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`reload ${pid}`)
+						o.inst.reloadComponent()
+					}
+				})
+				break ;
+			case "param":
+				objs.forEach(o=>{
+					if(o.pid == pid ) {
+						console.log(`setparam ${pid}`)
+						o.inst.setparam(data.param) 
+					}
+				})
+				break ;
+			case "kill":
+				objs = objs.filter(o=>{
+					if(o.pid == pid ) {
+						console.log(`remove ${pid}`)
+						$('#base').removeChild(o.inst.el) 
+						return false 
+					} else return true 
+				})
+				break ;
+			case "env":
+				
+				break ;
+			case "clear":
+				$('#base').innerHTML = "" 
+				objs.length = 0 
+				break ;
+		}
+		
+};
+
+// API call to server 
+const SAPI = {
+	get:(cmd,param={}) =>{
+		const pstr = new URLSearchParams(param).toString() 
+		return new Promise((resolve,reject)=>{
+			const path = `/api/${cmd}?${pstr}`
+			fetch( path , {
+				method:"GET"
+			}).then( async resp=>{
+				resp.json().then(data=>{
+					resolve(data) 
+				})
+			})
+		})
+	}
+}
+
+onload = function() {
+	$('a-scene').addEventListener("loaded",async ev=>{
+		console.log("scene loaded")
+		window.SPSHELL = APP.mount('#reactive') // set global APP reference
+		SPSHELL.base_element = $('#base') 
+
+		// resume procs 
+		const initdata = await SAPI.get("procs") 
+		console.log(initdata) 
+		initdata.procs.forEach(async data=>{
+			const cinst = await SPSHELL.addobj({'pid':data.pid,'path':data.path,'param':data.param})
+			objs.push({'pid':data.pid,'inst':cinst,'data':data})			
+		})
+	})
+}//onload
+
+</script>
+<style>
+html,body {
+	width:100% ;
+	height:100% ;
+	margin:0 ;
+}
+#stat {
+	position:absolute ;
+	width:40rem ;
+	height:2rem ;
+	background-color:black ;
+	color:white ;
+	z-index:100;
+}
+</style>
+</head>
+<body>
+
+<a-scene  xr-mode-ui="XRMode:xr" device-orientation-permission-ui="enabled: false" background="color:#000")
+stat>
+	<a-assets>
+			<img id="floortex" src="assets/tex1024.png">
+	</a-assets>
+
+<!--reactive objects-->
+<a-entity id=reactive>
+	<div id=stat>SPATIAL SHELL playground v01  [stat {{stat_calls}}calls {{stat_poly}}△	]</div>
+	
+	<!--app base -->
+	<a-entity id=base  position="0 0 0"  scale="1 1 1" rotation="0 0 0">
+	</a-entity>
+	<!-- background -->
+	<a-entity id=background >
+		<a-entity v-if="bg_kind=='space'" id=bg_space noar>
+			<!--floor-->
+			<a-plane visible=true position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
+			<!--sky-->
+			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg_mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
+		</a-entity>
+	</a-entity>
+	
+	<!--lights-->
+	<a-entity id=light>
+		<a-entity light="type: ambient; color: #888"></a-entity>
+		<a-entity light="type: directional; color: #FFF; intensity: 0.6; castShadow:false;" position="-0.5 1 1"></a-entity>
+	</a-entity>
+</a-entity>
+
+	<!--camera-->
+	<a-entity id="camrig"  position="0 1.2 0" vrheight > 
+		<a-entity id="camera" camera  look-controls="magicWindowTrackingEnabled:false" 
+			wasd-controls="acceleration=1;fly:true;"></a-entity>
+		<!--vr controller-->
+		<a-entity oculus-touch-controls="hand: left; model:false"  grab2 ></a-entity>
+		<a-entity oculus-touch-controls="hand: right; model:true"  grab2 ></a-entity>
+	</a-entity>
+</a-scene>
+
+</body>
+</html>
