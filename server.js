@@ -4,13 +4,14 @@
 
 const Express = require('express');
 const Https = require('https');
+const Http = require('http');
 const Fs = require('fs');
 const Path = require('path');
 const Chokidar = require('chokidar');
 
 // express server 
 const app = Express();
-const PORT = 3000;
+const PORT = 8080;
 
 // Node.js環境かバイナリ化されたpkg環境かを判定
 const isPkg = typeof process.pkg !== 'undefined';
@@ -99,12 +100,12 @@ app.get('/api/:command', (req, res) => {
 // POST 
 app.post('/api/:command', (req, res) => {
 	const command = req.params.command
-	const param = req.body.commandopt
+	const commandopt = req.body.commandopt
 	req.body.commandopt = undefined 
 	const aparam = req.body  
 	const ret = {
 			command: command,
-			param: param,
+			commandopt: commandopt,
 			stat:"ok"
 	}
 
@@ -113,7 +114,7 @@ app.post('/api/:command', (req, res) => {
 		// プロセス起動
 		case "open":
 		case "edit":
-			const app = param  
+			const app = commandopt  
 			const path = appPath + app 
 			const fpath = Path.join(staticDir,path)
 			if(!Fs.existsSync(fpath)) {
@@ -143,7 +144,7 @@ app.post('/api/:command', (req, res) => {
 			break 
 		// プロセス消去
 		case "kill":
-			const kpid = parseInt(param) 
+			const kpid = parseInt(commandopt) 
 			procs = procs.filter(p=>{
 				if(p.pid == kpid) {
 					// workspaceにkillコマンド送信
@@ -158,7 +159,7 @@ app.post('/api/:command', (req, res) => {
 			break ;
 		//パラメータ送信
 		case "param":
-			const ppid = parseInt(param) 
+			const ppid = parseInt(commandopt) 
 			procs.forEach(p=>{
 				if(p.pid == ppid) {
 					for(k in aparam) p.param[k] = aparam[k]
@@ -172,8 +173,9 @@ app.post('/api/:command', (req, res) => {
 			break ;
 		// 環境設定
 		case "env":
+
 			sendToAllClients({
-				'cmd':"env",'param':aparam
+				'cmd':"env",'commandopt':commandopt,'param':aparam
 			})
 			res.json(ret);
 			break ;
@@ -188,7 +190,7 @@ app.post('/api/:command', (req, res) => {
 		// プロセス一覧取得
 		case "procs":
 			ret.procs = procs
-			if(param=="pp") res.send(JSON.stringify(procs,null,2)) ;
+			if(commandopt=="pp") res.send(JSON.stringify(procs,null,2)) ;
 			else res.json(ret) 
 			break 
 			
@@ -243,9 +245,13 @@ app.get('/events', (req, res) => {
 		});
 });
 
+// HTTPサーバーを起動
+const httpServer = Http.createServer(app);
+httpServer.listen(80, () => {
+		console.log('HTTP Server running on port 80');
+});
 
 // HTTPSサーバの起動
-const server = Https.createServer(options, app).listen(PORT, () => {
-
+const server = Https.createServer(options, app).listen(PORT,'0.0.0.0', () => {
 		console.log(`SPATIAL SHELL Server is running on https://localhost:${PORT}`);
 });
