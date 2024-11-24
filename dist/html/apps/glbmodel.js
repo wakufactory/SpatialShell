@@ -1,7 +1,7 @@
 
 /*
 	SPATIAL SHELL APP
-	gltf viewer 
+	glb viewer 
 */
 export default {
 	props:{

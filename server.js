@@ -1,5 +1,5 @@
 // SPATIAL SHELL Server
-//  V0.1 
+//  V1 
 // wakufactory 2024 
 
 const Express = require('express');
@@ -123,7 +123,8 @@ app.post('/api/:command', (req, res) => {
 		// プロセス起動
 		case "open":
 		case "edit":
-			const app = commandopt  
+			let app = commandopt  
+			if(!app.match(/\.js$/)) app = app + ".js" 
 			const path = appPath + app 
 			const fpath = Path.join(staticDir,path)
 			if(!Fs.existsSync(fpath)) {
@@ -263,10 +264,10 @@ app.get('/events', (req, res) => {
 });
 
 // HTTPサーバーを起動
-const httpServer = Http.createServer(app);
-httpServer.listen(80, () => {
-		console.log('HTTP Server running on port 80');
-});
+//const httpServer = Http.createServer(app);
+//httpServer.listen(80, () => {
+//		console.log('HTTP Server running on port 80');
+//});
 
 // HTTPSサーバの起動
 const server = Https.createServer(options, app).listen(PORT,'0.0.0.0', () => {
