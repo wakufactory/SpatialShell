@@ -16,6 +16,8 @@ SPATIAL SHELL has the following characteristics
  - Does not depend on specific web services
  - A simple environment where you can write a program and run it.
 
+Currently, operation has been confirmed with VisionPro and MetaQuest3 .
+
 ## guide 
 
 Read first (japanese).
@@ -85,4 +87,7 @@ The WebXR app consists of a Vue template and A-Frame components.
 
 3Dmodel lycoris source:
 (https://sketchfab.com/3d-models/red-spider-lily-lycoris-radiata-3595e743a5b64d8699fac6dcf4af3f4f)
+
+all sample photos: by wakufactory 
+
 
