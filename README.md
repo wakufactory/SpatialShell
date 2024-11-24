@@ -6,7 +6,9 @@ SPATIAL SHELL is playground for WebXR.
 
 With SPATIAL SHELL, you can develop WebXR applications on Mac/Win and run them on the HMD's browser.
 
-It has the following characteristics
+Each app can be created as a file containing a template and JavaScript code, and then launched with a command.
+
+SPATIAL SHELL has the following characteristics
 
  - Development PC/Mac + HMD combination
  - Thoughts on CLI shell
@@ -32,7 +34,39 @@ Read first (japanese).
       - apps (apps folder)
       - assets (assets folder)
       - js (javascript libs) 
-   
+
+## command
+
+Control by entering commands from the Mac/PC command line. Use cmd.sh (mac) or cmd.ps1 (win) for commands.
+
+example:
+
+```
+> ./cmd.sh open clock.js
+```
+this open clock.js app.
+
+|Command|Usage|Description|
+|:---:|:---|:---|
+|open|open [appname]| open app|
+|edit|edit [appname]| open app for edit|
+|procs|procs pp| show running apps|
+|kill| kill [pid]| delete the specified app|
+|param|param [pid] [key]=[value]| set params to app|
+|clear|clear|remove all apps|
+
+## apps
+
+Sample apps.
+|App|Usage|Description|
+|:---:|:---|:---|
+|clock|clock|simple clock|
+|gltfmodel|gltfmodel psrc=[source]| open glb model|
+|image2D|image2D psrc=[source]| open 2D image|
+|sample/basic|sample/basic| basic template|
+|sample/nocode|sample/nocode| nocode sample|
+
+
 ## structure
 
 The SPATIAL SHELL mechanism is to run a local web server on Mac/Win and access it using the HMD's browser.
