@@ -80,3 +80,9 @@ The application framework that runs on the browser uses Vue and A-Frame.
 The WebXR app consists of a Vue template and A-Frame components.
 
 ![framework](./docs/SPATIAL_SHELL_Framework.png)
+
+## credits
+
+3Dmodel lycoris source:
+(https://sketchfab.com/3d-models/red-spider-lily-lycoris-radiata-3595e743a5b64d8699fac6dcf4af3f4f)
+
