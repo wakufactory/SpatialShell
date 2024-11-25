@@ -45,7 +45,8 @@ AFRAME.registerComponent('ss_imgload', {
 						this.el.setAttribute("width",w)
 						this.el.setAttribute("height",h)
 						this.el.setAttribute("position",{x:0,y:h/2,z:0})
-						this.el.setAttribute("material","src","#"+id)
+						this.el.removeAttribute('material'); 
+						this.el.setAttribute("material",{"shader":"flat","src":"#"+id})
 						resolve(im1)
 					}
 					im1.src = src
