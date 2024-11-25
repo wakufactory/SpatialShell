@@ -52,7 +52,7 @@ app.use((req, res, next) => {
 app.use(Express.static(staticDir));
 
 // 環境状態 
-const env = {
+let env = {
 	bg:{kind:"default"},
 	light:{default:true}
 }
@@ -123,16 +123,26 @@ app.post('/api/:command', (req, res) => {
 		// プロセス起動
 		case "open":
 		case "edit":
-			let app = commandopt  
-			if(!app.match(/\.js$/)) app = app + ".js" 
-			const path = appPath + app 
-			const fpath = Path.join(staticDir,path)
-			if(!Fs.existsSync(fpath)) {
-				console.log(`app not found ${fpath}`)
-				ret.stat = "cannot open app error"
-				res.json(ret);
-				break 
+			let app = commandopt 
+			let path = appPath + app 
+			let fpath = Path.join(staticDir,path) 
+			if(!Fs.existsSync(fpath) ) {
+				if(Fs.existsSync(fpath+".js")) {
+					path = path + ".js" 
+					fpath = fpath + ".js" 				
+				} else {
+					console.log(`app not found ${fpath}`)
+					ret.stat = "cannot open app error"
+					res.json(ret);
+					break 	
+				}		
 			}
+			const stats = Fs.statSync(fpath);
+			if (stats.isDirectory()) {	//ディレクトリならindex.jsを開く
+				path = path + "/index.js"
+				fpath = fpath + "/index.js"
+			}
+
 			if(command=="edit") {// editの場合はファイル更新を監視
 				console.log("watch "+fpath)
 				watcher.add(fpath)
@@ -211,7 +221,71 @@ app.post('/api/:command', (req, res) => {
 			ret.env = env
 			if(commandopt=="pp") res.send(JSON.stringify(env,null,2)) ;
 			else res.json(ret) 
-			break 		
+			break
+		//状態保存
+		case "savestat":
+			const sd = JSON.stringify({'env':env,'procs':procs},null,2) 
+			Fs.writeFile(Path.join(staticDir, '../',commandopt), sd, (err) => {
+				if (err) {
+					console.error("ファイルの保存中にエラーが発生しました:", err);
+					ret.stat ="NG" 
+					res.json(ret) 
+				} else {
+					console.log("データをJSONファイルに保存しました。");
+					ret.stat ="OK" 
+					res.json(ret) 
+				}
+			});
+			break ;
+		//状態読み込み
+		case "loadstat":
+			Fs.readFile(Path.join(staticDir, '../',commandopt), 'utf8', (err, jsonData) => {
+				if (err) {
+					console.error("ファイルの読み込み中にエラーが発生しました:", err);
+					ret.stat ="NG file open" 
+					res.json(ret) 
+				} else {
+					let data 
+					try {	// JSON文字列をオブジェクトに変換
+						data = JSON.parse(jsonData);
+					} catch (parseErr) {
+						console.error("JSONの解析中にエラーが発生しました:", parseErr);
+						ret.stat ="NG json error" 
+						res.json(ret) 
+						return 
+					}
+//						console.log("読み込んだデータ:", data);
+						// 環境の設定
+						for(let e in data.env) {
+							sendToAllClients({
+								'cmd':"env",'commandopt':e,'param':data.env[e]
+							})
+						}
+						env = data.env 
+						// apps の起動
+						const ps = []
+						sendToAllClients({
+							'cmd':"clear"
+						})
+						data.procs.forEach(p=>{
+							if(!Fs.existsSync(p.fpath)) {
+								console.log(`app not found ${p.fpath}`)
+								return
+							}
+							if(pid<p.pid) pid = p.pid 
+							ps.push(p)
+							// workspaceにopenコマンド送信
+							sendToAllClients({
+									'cmd':"open",'pid':p.pid,'path':p.path,'param':p.param
+								})							
+						})
+						procs = ps 
+						pid++		
+						ret.stat ="OK" 
+						res.json(ret) 
+				}
+			});
+			break ;	
 		default:
 			ret.stat = "ng no command" 
 			res.json(ret) 
