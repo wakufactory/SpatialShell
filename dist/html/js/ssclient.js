@@ -31,6 +31,7 @@ export const APP = Vue.createApp({
 						grabbable:true,
 						issetpos:false,
 						sposition:{'x':0,'y':0,'z':0},
+						srotation:{'x':0,'y':0,'z':0},
 						key:0,
 						comppath:	 appdata.path,
 						ccompo: null,
@@ -49,12 +50,14 @@ export const APP = Vue.createApp({
 							this.param[k] = isNaN(parseFloat(v))?v:parseFloat(v) ;
 							console.log(`set ${k} to ${param[k]}`)
 							if(k=="grabbable") this.grabbable = param.grabbable=='false'?false:true 
+							if(k=="posX") this.sposition.x = param.posX,this.issetpos=true
+							if(k=="posY") this.sposition.y = param.posY,this.issetpos=true
+							if(k=="posZ") this.sposition.z = param.posZ,this.issetpos=true
+							if(k=="rotX") this.srotation.x = param.rotX,this.issetpos=true
+							if(k=="rotY") this.srotation.y = param.rotY,this.issetpos=true
+							if(k=="rotZ") this.srotation.z = param.rotZ,this.issetpos=true
 							if(k=="issetpos") this.issetpos = param.issetpos=='false'?false:true 
-							if(k=="posX") this.sposition.x = param.posX
-							if(k=="posY") this.sposition.y = param.posY
-							if(k=="posZ") this.sposition.z = param.posZ
 						}
-
 					},
 					async loadComponent() {
 						const timestamp = new Date().getTime();
@@ -70,7 +73,10 @@ export const APP = Vue.createApp({
 					setpos() {
 //						console.log("setpos "+`${this.sposition.x} ${this.sposition.y} ${this.sposition.z}`)
 						return `${this.sposition.x} ${this.sposition.y} ${this.sposition.z}` 
-					}	
+					},
+					setrot() {
+						return `${this.srotation.x} ${this.srotation.y} ${this.srotation.z}` 
+					}		
 				},
 				mounted() {
 					if(this.grabbable) {
@@ -89,7 +95,7 @@ export const APP = Vue.createApp({
 				</a-box>
 				</a-entity>
 				<a-entity v-else>
-					<a-entity ref="base" :position="setpos()" >
+					<a-entity ref="base" :position="setpos()" :rotation="setrot()" >
 						<component ref="ccompo" :key=key :is=ccompo :pscale="cscale*param.basescale" v-bind="param" />
 					</a-entity>				
 				</a-entity>
