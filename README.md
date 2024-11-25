@@ -58,8 +58,11 @@ commands:
 |kill| kill [pid]| delete the specified app|
 |param|param [pid] [key]=[value]| set params to app|
 |clear|clear|remove all apps|
+|env | env [cat] [param] | set env|
+|savestat| savestat [file] | save status |
+|loadstat| loadstat [file] | load status |
 
-common params: 
+common params for app: 
 
 |Param|Usage|Description|
 |:---:|:---|:---|
