@@ -14,7 +14,9 @@ export default {
 			type:Number,
 			default:60
 		},
-		axis:String
+		axis:{
+			default:"Y"
+		}
 	},  
 	methods:{
 		scale() {
