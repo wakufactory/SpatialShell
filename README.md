@@ -20,9 +20,9 @@ Currently, operation has been confirmed with VisionPro and MetaQuest3 .
 
 ## guide 
 
-Read first (japanese).
+Read first.
 
-[SPATIAL SHELLスタートアップガイド](https://note.com/wakufactory/n/na57d51909ab9)
+[SPATIAL SHELLスタートアップガイド](https://note.com/wakufactory/n/na57d51909ab9)  (japanese)
 
 ## files
 
@@ -48,6 +48,8 @@ example:
 ```
 this open clock.js app.
 
+commands:
+
 |Command|Usage|Description|
 |:---:|:---|:---|
 |open|open [appname]| open app|
@@ -57,6 +59,19 @@ this open clock.js app.
 |param|param [pid] [key]=[value]| set params to app|
 |clear|clear|remove all apps|
 
+common params: 
+
+|Param|Usage|Description|
+|:---:|:---|:---|
+|basescale| basescale=0.1 | scaling |
+|grabbable| grabbable=false | set grabbable |
+|posX| posX=2 | set fixed position X |
+|posY| posY=2 | set fixed position Y |
+|posZ| posZ=2 | set fixed position Z |
+|rotX| rotX=10 | set fixed rotation X (degree) |
+|rotY| rotY=10 | set fixed rotation Y (degree) |
+|rotZ| rotZ=10 | set fixed rotation Z (degree) |
+
 ## apps
 
 Sample apps.
@@ -65,6 +80,7 @@ Sample apps.
 |clock|clock|simple clock|
 |gltfmodel|gltfmodel psrc=[source]| open glb model|
 |image2D|image2D psrc=[source]| open 2D image|
+|image360|image360 psrc=[source]| open 360 image(Equirectangular)|
 |sample/basic|sample/basic| basic template|
 |sample/nocode|sample/nocode| nocode sample|
 
