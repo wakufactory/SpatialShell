@@ -25,18 +25,18 @@ Read first.
 [SPATIAL SHELLスタートアップガイド](https://note.com/wakufactory/n/na57d51909ab9)  (japanese)
 
 ## files
-
- - server.js (server program Runs on Node.js)
- - dist 
-    - cmd.sh (command script for mac)
-    - cmd.ps1 (command script for win(powershell))
-    - html
-      - index.html (document root)
-      - playground.html (main html for HMD)
-      - apps (apps folder)
-      - assets (assets folder)
-      - js (javascript libs) 
-
+```
+┣ server.js (server program Runs on Node.js)  
+┗ dist  
+  ┣ cmd.sh (command script for mac)  
+  ┣ cmd.ps1 (command script for win(powershell))  
+  ┗ html  
+    ┣ index.html (document root)  
+    ┣ playground.html (main html for HMD)  
+    ┣ apps (apps folder)  
+    ┣ assets (assets folder)  
+    ┗ js (javascript libs)  
+```
 ## command
 
 Control by entering commands from the Mac/PC command line. Use cmd.sh (mac) or cmd.ps1 (win) for commands.
