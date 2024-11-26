@@ -1,5 +1,5 @@
 // SPATIAL SHELL Server
-//  V1 
+//  V1.0
 // wakufactory 2024 
 
 const Express = require('express');
@@ -22,7 +22,9 @@ const staticDir = isPkg
 : Path.join(__dirname, 'dist/html/'); // Node.jsで起動した場合
 // appの置き場所
 const appPath = "/apps/"
-
+function getfpath(path) {
+	return Path.join(staticDir,path) 
+}
 
 // ssl用秘密鍵と証明書の読み込み
 const options = {
@@ -40,7 +42,7 @@ app.use((req, res, next) => {
 
 // 追加のヘッダ
 app.use((req, res, next) => {
-	if (/\.js$/.test(req.path)) {  //header for plyload 
+	if (/\.(ply|js|html)$/.test(req.path)) {  //header for plyload 
 		//将来的にはconfigに追い出すのがいいかも
 		res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
 		res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
@@ -65,7 +67,7 @@ const watcher = Chokidar.watch([], {persistent: true});
 watcher.on('change', path => {
 	console.log(`File ${path} has been changed`)
 	procs.forEach(p=>{
-		if(p.fpath==path) {
+		if(getfpath(p.path)==path) {
 			// ビュアーにupdateコマンド送信
 			sendToAllClients({
 				'cmd':"update",'pid':p.pid,'path':path
@@ -100,7 +102,12 @@ app.get('/api/:command', (req, res) => {
 		case "getenv":
 			ret.env = env
 			res.json(ret) 
-			break 			
+			break
+		// 状態全部取得
+		case "getstat":
+			ret.stat = {'env':env,'procs':procs}
+			res.json(ret) 
+			break 	
 		default:
 			ret.stat = "ng no command" 
 			res.json(ret) 
@@ -125,7 +132,7 @@ app.post('/api/:command', (req, res) => {
 		case "edit":
 			let app = commandopt 
 			let path = appPath + app 
-			let fpath = Path.join(staticDir,path) 
+			let fpath = getfpath(path) 
 			if(!Fs.existsSync(fpath) ) {
 				if(Fs.existsSync(fpath+".js")) {
 					path = path + ".js" 
@@ -157,7 +164,7 @@ app.post('/api/:command', (req, res) => {
 				'pid':pid++,
 				'app':app,
 				'path':path,
-				'fpath':fpath,
+//				'fpath':fpath,
 				'param':aparam 
 			})
 			res.json(ret);
@@ -208,6 +215,10 @@ app.post('/api/:command', (req, res) => {
 				'cmd':"clear"
 			})
 			procs.length = 0 
+			env.bg.kind="default"
+			sendToAllClients({
+				'cmd':"env",'commandopt':"bg",'param':{'kind':"default"}
+			})
 			res.json(ret);
 			break 	
 		// プロセス一覧取得
@@ -225,7 +236,7 @@ app.post('/api/:command', (req, res) => {
 		//状態保存
 		case "savestat":
 			const sd = JSON.stringify({'env':env,'procs':procs},null,2) 
-			Fs.writeFile(Path.join(staticDir, '../',commandopt), sd, (err) => {
+			Fs.writeFile(Path.join(staticDir, '../savestat/',commandopt), sd, (err) => {
 				if (err) {
 					console.error("ファイルの保存中にエラーが発生しました:", err);
 					ret.stat ="NG" 
@@ -239,7 +250,7 @@ app.post('/api/:command', (req, res) => {
 			break ;
 		//状態読み込み
 		case "loadstat":
-			Fs.readFile(Path.join(staticDir, '../',commandopt), 'utf8', (err, jsonData) => {
+			Fs.readFile(Path.join(staticDir, '../savestat/',commandopt), 'utf8', (err, jsonData) => {
 				if (err) {
 					console.error("ファイルの読み込み中にエラーが発生しました:", err);
 					ret.stat ="NG file open" 
@@ -255,24 +266,32 @@ app.post('/api/:command', (req, res) => {
 						return 
 					}
 //						console.log("読み込んだデータ:", data);
-						// 環境の設定
-						for(let e in data.env) {
+						const clear = (aparam.noclear!="true")
+						if(clear) {
+							// 環境の設定
+							for(let e in data.env) {
+								sendToAllClients({
+									'cmd':"env",'commandopt':e,'param':data.env[e]
+									})
+							}
+							env = data.env
+						}
+						// apps の起動
+						let ps = procs 
+						if(clear) {
+							ps = []
 							sendToAllClients({
-								'cmd':"env",'commandopt':e,'param':data.env[e]
+								'cmd':"clear"
 							})
 						}
-						env = data.env 
-						// apps の起動
-						const ps = []
-						sendToAllClients({
-							'cmd':"clear"
-						})
 						data.procs.forEach(p=>{
-							if(!Fs.existsSync(p.fpath)) {
-								console.log(`app not found ${p.fpath}`)
+							if(!Fs.existsSync(getfpath(p.path))) {
+								console.log(`app not found ${getfpath(p.path)}`)
 								return
 							}
-							if(pid<p.pid) pid = p.pid 
+							if(clear) {
+								if(pid<p.pid) pid = p.pid 
+							} else p.pid = pid++
 							ps.push(p)
 							// workspaceにopenコマンド送信
 							sendToAllClients({
@@ -280,7 +299,7 @@ app.post('/api/:command', (req, res) => {
 								})							
 						})
 						procs = ps 
-						pid++		
+						if(clear) pid++		
 						ret.stat ="OK" 
 						res.json(ret) 
 				}
