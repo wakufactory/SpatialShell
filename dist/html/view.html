@@ -12,28 +12,38 @@ const DEBUG = true
 
 import {APP} from './js/ssclient.js'
 
-const initdata = [
+const initdata = {
+'env':{
+	"bg": {
+		"kind": "default"
+	},
+	"light": {
+		"default": true
+	}
+},
+'procs':[
 {
 	'pid':1,
-	'path':"../apps/clock.js",
+	'path':"/apps/clock.js",
 	'param':{} 
 },
 {
 	'pid':2,
-	'path':"../apps/gltfmodel.js",
+	'path':"/apps/glbmodel.js",
 	'param':{'psrc':"assets/lycoris.glb",'basescale':0.02} 
 },
 {
 	'pid':3,
-	'path':"../apps/image2D.js",
+	'path':"/apps/image2D.js",
 	'param':{'psrc':"assets/carrot.jpeg",'issetpos':true,'posX':0,'posY':0.2,'posZ':-3,'basescale':20} 
 },
 {
 	'pid':4,
-	'path':"../apps/sample/instobj1.js",
+	'path':"/apps/sample/instobj1.js",
 	'param':{'basescale':1} 
 }
 ]
+}
 
 const objs = [] 
 onload =  function() {
@@ -42,10 +52,7 @@ onload =  function() {
 		window.SPSHELL = APP.mount('#reactive') // set global APP reference
 		SPSHELL.base_element = $('#base')
 		//アプリをロード	
-		initdata.forEach(async data=>{
-			const cinst = await SPSHELL.addobj({'pid':data.pid,'path':data.path,'param':data.param})
-			objs.push({'pid':data.pid,'inst':cinst,'data':data})			
-		})
+		SPSHELL.loadstat(initdata) 
 	})
 }//onload
 
@@ -77,24 +84,23 @@ stat>
 
 <!--reactive objects-->
 <a-entity id=reactive>
-	<div id=stat>SPATIAL SHELL viewer v01 [stat {{stat_calls}}calls {{stat_poly}}△]
-		</div>
+	<div id=stat>SPATIAL SHELL playground v1.0  [stat {{stat_calls}}calls {{stat_poly}}△	]</div>
 	
 	<!--app base -->
-	<a-entity id=base  position="0 0 -0.3"  scale="1 1 1" rotation="0 0 0">
+	<a-entity id=base  position="0 0 0"  scale="1 1 1" rotation="0 0 0">
 	</a-entity>
 	<!-- background -->
 	<a-entity id=background >
-		<a-entity v-if="bg_kind=='space'" id=bg_space noar>
+		<a-entity v-if="bg.kind=='default'" id=bg_space noar>
 			<!--floor-->
-			<a-plane  position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg_mix}`"></a-plane>
+			<a-plane visible=true position="0 -0.001 0" rotation="-90 0 0" width="200" height="200" color="#444" :material="`shader:flat;repeat:20 20;src:#floortex;transparent:true;opacity:${bg.mix}`"></a-plane>
 			<!--sky-->
-			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg_mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
+			<a-sky  :material="`shader:flat;color:#446;transparent:true;opacity:${bg.mix}`" radius="110" segments-height="6" segments-width="12"></a-sky>
 		</a-entity>
 	</a-entity>
 	
 	<!--lights-->
-	<a-entity id=light>
+	<a-entity v-if="light.default==true">
 		<a-entity light="type: ambient; color: #888"></a-entity>
 		<a-entity light="type: directional; color: #FFF; intensity: 0.6; castShadow:false;" position="-0.5 1 1"></a-entity>
 	</a-entity>

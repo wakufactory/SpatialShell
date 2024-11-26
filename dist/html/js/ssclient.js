@@ -1,7 +1,10 @@
-// scene vue app
+// SPATIAL SHELL client 
+// wakufactory 
 
+// scene vue app
 export const APP = Vue.createApp({
 	created() {
+		this.procs = [] 
 	},
 	data() {
 		return {
@@ -33,7 +36,7 @@ export const APP = Vue.createApp({
 						sposition:{'x':0,'y':0,'z':0},
 						srotation:{'x':0,'y':0,'z':0},
 						key:0,
-						comppath:	 appdata.path,
+						comppath:	 ".."+appdata.path,
 						ccompo: null,
 						pid: appdata.pid,
 						compoel:null		
@@ -122,10 +125,43 @@ export const APP = Vue.createApp({
 
 			return appinst 
 		},
+		// stat読み込み
+		loadstat(data) {
+			console.log(data.env) 
+			this.setenv(data.env) 
+			// resume procs 
+			console.log(data.procs) 
+			data.procs.forEach(async data=>{
+				const cinst = await this.addobj({'pid':data.pid,'path':data.path,'param':data.param})
+				this.procs.push({'pid':data.pid,'inst':cinst,'data':data})			
+			})
+		},
+		// 環境設定
+		setenv(data) {
+			console.log(data) 
+			for(let k in data) {
+				const p = data[k] 
+				for(let pp in p) {
+					switch(k) {
+						case "bg":
+							if(pp=="kind") this.bg.kind = p[pp]
+							break 
+						case "light":
+							if(pp=="default") this.light.default = p[pp]==true||p[pp]=='true'
+							break
+					}
+				}
+			}
+		},
+
 		// サービス関数 AFRAME.registerComponentのラッパ
 		registerComponent(name,data) {
 			if(AFRAME.components[name]) delete AFRAME.components[name]
 			AFRAME.registerComponent(name,data) 
+		},
+		registerShader(name,data) {
+			if(AFRAME.shaders[name]) delete AFRAME.shaders[name]
+			AFRAME.registerShader(name,data) 
 		}		
 	}
 })
