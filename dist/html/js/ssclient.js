@@ -49,8 +49,11 @@ export const APP = Vue.createApp({
 					setparam(param) {
 						if(!param) return 
 						for(let k in param) {
-							const v = param[k] 
-							this.param[k] = isNaN(parseFloat(v))?v:parseFloat(v) ;
+							let v = param[k] 
+							if(v=="true") v= true 
+							else if(v=="false") v=false 
+							else if(v.match(/^[e0-9.\-+]+$/) && parseFloat(v)!==NaN) { v = parseFloat(v)}
+							this.param[k] = v ;
 							console.log(`set ${k} to ${param[k]}`)
 							if(k=="grabbable") this.grabbable = param.grabbable=='false'?false:true 
 							if(k=="posX") this.sposition.x = param.posX,this.issetpos=true
@@ -91,7 +94,7 @@ export const APP = Vue.createApp({
 				},
 				template: `
 				<a-entity  v-if="grabbable">
-					<a-box ref="gbox" :position="setpos()" width=0.02 height=0.02 depth=0.02  :color="hcolor" material="transparent:true;opacity:0.7"  grabbable2="distance:.04" ss_grabbase>
+					<a-box ref="gbox" :position="setpos()" width=0.02 height=0.02 depth=0.02 material="transparent:true;opacity:0.7;color:#ccc"  grabbable2="distance:.04" ss_grabbase>
 					<a-entity ref="base"  >
 						<component ref="ccompo" :key=key :is=ccompo :pscale="cscale*param.basescale" v-bind="param" />
 					</a-entity>
@@ -199,7 +202,22 @@ AFRAME.registerComponent('ss_grabbase', {
 	init:function() {
 		this.el.addEventListener("grab",ev=>{
 			console.log("grabbed! "+this.data.pid)
-			console.log(ev.detail) 
+			if(ev.detail.state=="start") {
+				this.el.setAttribute("material","color","#fcc")
+			} else {
+				this.el.setAttribute("material","color","#ccc")  
+			}
+			this.el.querySelectorAll(".ssgrab").forEach(o=>{
+				o.emit("ssgrab",ev.detail) 
+			})
+			/*
+			let cp = null 
+			SPSHELL.procs.forEach(p=>{
+				if(p.pid==this.data.pid) cp = p  
+			})
+			if(!cp) return
+//			console.log(cp) 
+			*/
 		})
 	},
 })
