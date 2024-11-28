@@ -22,7 +22,7 @@ const staticDir = isPkg
 : Path.join(__dirname, 'dist/html/'); // Node.jsで起動した場合
 // appの置き場所
 const appPath = "/apps/"
-function getfpath(path) {
+const getfpath = (path)=> {
 	return Path.join(staticDir,path) 
 }
 
@@ -64,17 +64,32 @@ let procs = [] //プロセスリスト
 
 // ソースファイルの監視
 const watcher = Chokidar.watch([], {persistent: true});
+const watchfile = {} 
 watcher.on('change', path => {
 	console.log(`File ${path} has been changed`)
 	procs.forEach(p=>{
 		if(getfpath(p.path)==path) {
 			// ビュアーにupdateコマンド送信
 			sendToAllClients({
-				'cmd':"update",'pid':p.pid,'path':path
+				'cmd':"update",'pid':p.pid,'path':p.path
 			})			
 		}
 	})
 });
+const watchadd = (path)=> {
+	if(watchfile[path]==undefined) watchfile[path] = 1
+	else watchfile[path]++ ;
+	watcher.add(path)
+	console.log(watchfile) 
+}
+const watchrm = (path)=> {
+	if(watchfile[path]==undefined) return 
+	if(--watchfile[path]==0) {
+		delete watchfile[path] 
+		watcher.unwatch(path)
+	}
+	console.log(watchfile) 
+}
 
 // URLエンコードされたデータを解析するミドルウェア
 app.use(Express.urlencoded({ extended: true })); // これで req.body にデータが格納される
@@ -152,7 +167,7 @@ app.post('/api/:command', (req, res) => {
 
 			if(command=="edit") {// editの場合はファイル更新を監視
 				console.log("watch "+fpath)
-				watcher.add(fpath)
+				watchadd(fpath)
 			}
 			// workspaceにopenコマンド送信
 			sendToAllClients({
@@ -178,6 +193,7 @@ app.post('/api/:command', (req, res) => {
 					sendToAllClients({
 						'cmd':"kill",'pid':kpid
 					})	
+					watchrm(getfpath(p.path)) 
 					return false 
 				}
 				return true 
@@ -213,6 +229,9 @@ app.post('/api/:command', (req, res) => {
 		case "clear":
 			sendToAllClients({
 				'cmd':"clear"
+			})
+			procs.forEach(p=>{
+				watchrm(getfpath(p.path)) 
 			})
 			procs.length = 0 
 			env.bg.kind="default"
@@ -267,7 +286,7 @@ app.post('/api/:command', (req, res) => {
 					}
 //						console.log("読み込んだデータ:", data);
 						const clear = (aparam.noclear!="true")
-						if(clear) {
+						if(clear) {//置き換えの場合環境読み込む
 							// 環境の設定
 							for(let e in data.env) {
 								sendToAllClients({
@@ -278,7 +297,10 @@ app.post('/api/:command', (req, res) => {
 						}
 						// apps の起動
 						let ps = procs 
-						if(clear) {
+						if(clear) {	//置き換えの場合全procs消去
+							procs.forEach(p=>{
+								watchrm(getfpath(p.path)) 
+							})
 							ps = []
 							sendToAllClients({
 								'cmd':"clear"
