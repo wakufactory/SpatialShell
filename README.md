@@ -81,11 +81,14 @@ Sample apps.
 |App|Usage|Description|
 |:---:|:---|:---|
 |clock|clock|simple clock|
-|gltfmodel|gltfmodel psrc=[source]| open glb model|
+|glbmodel|glbmodel psrc=[source]| open glb model|
 |image2D|image2D psrc=[source]| open 2D image|
 |image360|image360 psrc=[source]| open 360 image(Equirectangular)|
 |sample/basic|sample/basic| basic template|
 |sample/nocode|sample/nocode| nocode sample|
+|sample/instobj1|sample/instobj1| object with instancing |
+|sample/pmesh| sample/pmesh| mesh moving sample |
+
 
 
 ## structure
