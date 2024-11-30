@@ -52,7 +52,7 @@ export const APP = Vue.createApp({
 							let v = param[k] 
 							if(v=="true") v= true 
 							else if(v=="false") v=false 
-							else if(v.match(/^[e0-9.\-+]+$/) && parseFloat(v)!==NaN) { v = parseFloat(v)}
+							else if(typeof v=="string" && v.match(/^[e0-9.\-+]+$/) && parseFloat(v)!==NaN) { v = parseFloat(v)}
 							this.param[k] = v ;
 							console.log(`set ${k} to ${param[k]}`)
 							if(k=="grabbable") this.grabbable = param.grabbable=='false'?false:true 
