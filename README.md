@@ -84,6 +84,7 @@ Sample apps.
 |glbmodel|glbmodel psrc=[source]| open glb model|
 |image2D|image2D psrc=[source]| open 2D image|
 |image360|image360 psrc=[source]| open 360 image(Equirectangular)|
+|plymodel|plymodel psrc=[source]| open gaussian splatting(ply)|
 |sample/basic|sample/basic| basic template|
 |sample/nocode|sample/nocode| nocode sample|
 |sample/instobj1|sample/instobj1| object with instancing |
