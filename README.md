@@ -107,9 +107,10 @@ The WebXR app consists of a Vue template and A-Frame components.
 
 ## credits
 
-3Dmodel lycoris source:
+ - GaussianSplats3D : (https://github.com/mkkellogg/GaussianSplats3D)
+ - 3Dmodel lycoris source:
 (https://sketchfab.com/3d-models/red-spider-lily-lycoris-radiata-3595e743a5b64d8699fac6dcf4af3f4f)
 
-all sample photos: by wakufactory 
+ - all sample photos: by wakufactory 
 
 
