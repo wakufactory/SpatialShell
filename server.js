@@ -140,7 +140,7 @@ app.post('/api/:command', (req, res) => {
 			stat:"ok"
 	}
 
-	console.log("api post "+command) ;
+//	console.log("api post "+command) ;
 	switch(command) {
 		// プロセス起動
 		case "open":
@@ -202,7 +202,7 @@ app.post('/api/:command', (req, res) => {
 			break ;
 		//パラメータ送信
 		case "param":
-			const ppid = parseInt(commandopt) 
+			const ppid = parseInt(commandopt)
 			procs.forEach(p=>{
 				if(p.pid == ppid) {
 					for(k in aparam) p.param[k] = aparam[k]
@@ -239,7 +239,13 @@ app.post('/api/:command', (req, res) => {
 				'cmd':"env",'commandopt':"bg",'param':{'kind':"default"}
 			})
 			res.json(ret);
-			break 	
+			break 
+		case "reload":
+			sendToAllClients({
+				'cmd':"reload",'commandopt':"",'param':{}
+			})
+			res.json(ret);
+			break 			
 		// プロセス一覧取得
 		case "procs":
 			ret.procs = procs
@@ -326,7 +332,7 @@ app.post('/api/:command', (req, res) => {
 						res.json(ret) 
 				}
 			});
-			break ;	
+			break ;
 		default:
 			ret.stat = "ng no command" 
 			res.json(ret) 

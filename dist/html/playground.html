@@ -60,6 +60,12 @@ eventSource.onmessage = async  (event) => {
 				$('#base').innerHTML = "" 
 				objs.length = 0 
 				break ;
+			case "reload":
+				$('#base').innerHTML = "" 
+				const rdata = await SAPI.get("getstat")
+				SPSHELL.loadstat(rdata.stat)
+				objs = SPSHELL.procs 
+				break ;  
 		}
 };
 
@@ -71,9 +77,10 @@ onload = function() {
 		SPSHELL.base_element = $('#base') 
 		//サーバ状態読み込んで復元
 		const data = await SAPI.get("getstat")
-		objs = SPSHELL.procs  
-		SPSHELL.loadstat(data.stat) 
+		SPSHELL.loadstat(data.stat)
+		objs = SPSHELL.procs   
 	})
+
 }//onload
 
 </script>
@@ -95,7 +102,7 @@ html,body {
 </head>
 <body>
 
-<a-scene  xr-mode-ui="XRMode:xr" device-orientation-permission-ui="enabled: false" background="color:#000")
+<a-scene  xr-mode-ui="XRMode:xr" device-orientation-permission-ui="enabled: false" background="color:#000" screenshot)
 stat>
 	<a-assets>
 			<img id="floortex" src="assets/tex1024.png">
