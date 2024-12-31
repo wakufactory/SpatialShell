@@ -55,6 +55,7 @@ export const APP = Vue.createApp({
 							else if(typeof v=="string" && v.match(/^[e0-9.\-+]+$/) && parseFloat(v)!==NaN) { v = parseFloat(v)}
 							this.param[k] = v ;
 							console.log(`set ${k} to ${param[k]}`)
+							if(k=="cscale") this.cscale = param.cscale
 							if(k=="grabbable") this.grabbable = param.grabbable=='false'?false:true 
 							if(k=="posX") this.sposition.x = param.posX,this.issetpos=true
 							if(k=="posY") this.sposition.y = param.posY,this.issetpos=true
@@ -70,7 +71,7 @@ export const APP = Vue.createApp({
 						// 動的にコンポーネントをインポートし、キャッシュを避ける
 						const module = await import(`${this.comppath}?${timestamp}`);
 						this.ccompo = Vue.shallowRef(module.default); //warning避け
-						console.log(this.ccompo) 
+//						console.log(this.ccompo) 
 					},
 					async reloadComponent() {
 						await this.loadComponent();
@@ -120,7 +121,7 @@ export const APP = Vue.createApp({
 				if(posy==0) posy=1
 				appinst.sposition.x = this.posx;
 				appinst.sposition.y = posy
-				appinst.sposition.z = -0.3 
+				appinst.sposition.z = -0.3 +this.posx * 0.01
 				console.log(`initpos ${appinst.sposition.x} ${appinst.sposition.y} ${appinst.sposition.z}`)
 				this.posx += 0.1 
 				if(this.posx > 0.3) this.posx -= 0.58
@@ -130,10 +131,8 @@ export const APP = Vue.createApp({
 		},
 		// stat読み込み
 		loadstat(data) {
-			console.log(data.env) 
 			this.setenv(data.env) 
 			// resume procs 
-			console.log(data.procs) 
 			data.procs.forEach(async data=>{
 				const cinst = await this.addobj({'pid':data.pid,'path':data.path,'param':data.param})
 				this.procs.push({'pid':data.pid,'inst':cinst,'data':data})			
@@ -159,12 +158,22 @@ export const APP = Vue.createApp({
 
 		// サービス関数 AFRAME.registerComponentのラッパ
 		registerComponent(name,data) {
-			if(AFRAME.components[name]) delete AFRAME.components[name]
+			let update = "" 
+			if(AFRAME.components[name]) {
+				delete AFRAME.components[name]
+				update = "update" 
+			}
 			AFRAME.registerComponent(name,data) 
+			console.log(`register ${update} ${name}`)
 		},
 		registerShader(name,data) {
-			if(AFRAME.shaders[name]) delete AFRAME.shaders[name]
+			let update = "" 
+			if(AFRAME.shaders[name]) {
+				delete AFRAME.shaders[name]
+				update = "update" 
+			}
 			AFRAME.registerShader(name,data) 
+			console.log(`register shader ${update} ${name}`)
 		}		
 	}
 })
@@ -246,6 +255,7 @@ AFRAME.registerComponent('vrheight', {
 AFRAME.registerComponent('noar',{
 	init:function() {
 		const sc = this.el.sceneEl
+		this.el.setAttribute("visible",sc.states!="ar-mode" )
 		sc.addEventListener("enter-vr", ev=>{
 			if(sc.states=="vr-mode") return
 			this.el.setAttribute("visible",false )
