@@ -1,0 +1,32 @@
+ {
+"env":{
+	"bg": {
+		"kind": "default"
+	},
+	"light": {
+		"default": true
+	}
+},
+"procs":[
+{
+	"pid":1,
+	"path":"/apps/clock.js",
+	"param":{} 
+},
+{
+	"pid":2,
+	"path":"/apps/glbmodel.js",
+	"param":{"psrc":"assets/lycoris.glb","basescale":0.02} 
+},
+{
+	"pid":3,
+	"path":"/apps/image2D.js",
+	"param":{"psrc":"assets/carrot.jpeg","issetpos":true,"posX":0,"posY":0.2,"posZ":-3,"basescale":20} 
+},
+{
+	"pid":4,
+	"path":"/apps/sample/instobj1.js",
+	"param":{"basescale":1} 
+}
+]
+}

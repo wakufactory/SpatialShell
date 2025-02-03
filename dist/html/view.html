@@ -8,54 +8,32 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
 <script type=module>
 const $ = (o)=>document.querySelector(o)
-const DEBUG = true 
-
 import {APP} from './js/ssclient.js'
 
-const initdata = {
-'env':{
-	"bg": {
-		"kind": "default"
-	},
-	"light": {
-		"default": true
-	}
-},
-'procs':[
-{
-	'pid':1,
-	'path':"/apps/clock.js",
-	'param':{} 
-},
-{
-	'pid':2,
-	'path':"/apps/glbmodel.js",
-	'param':{'psrc':"assets/lycoris.glb",'basescale':0.02} 
-},
-{
-	'pid':3,
-	'path':"/apps/image2D.js",
-	'param':{'psrc':"assets/carrot.jpeg",'issetpos':true,'posX':0,'posY':0.2,'posZ':-3,'basescale':20} 
-},
-{
-	'pid':4,
-	'path':"/apps/sample/instobj1.js",
-	'param':{'basescale':1} 
-}
-]
-}
-
-const objs = [] 
 onload =  function() {
 	$('a-scene').addEventListener("loaded", ev=>{
 		console.log("scene loaded")
 		window.SPSHELL = APP.mount('#reactive') // set global APP reference
 		SPSHELL.base_element = $('#base')
-		//アプリをロード	
-		SPSHELL.loadstat(initdata) 
+		let path = location.search.substr(1) 
+		if(path=="") path = "statdata/sample"
+		//statをロード	
+		fetch( path , {
+			method:"GET"
+		}).then( async resp=>{
+			if(!resp.ok) throw new Error(`HTTP error! Status: ${resp.status}`);
+			resp.json().then(data=>{
+				console.log(data)
+				SPSHELL.loadstat(data) 
+				$('#msg').innerHTML = "Loaded: "+path  
+			}).catch(err=>{
+				$('#msg').innerHTML = ("json: "+err)
+			})
+		}).catch(err=>{
+			$('#msg').innerHTML = ("fetch: "+err)
+		})
 	})
 }//onload
-
 
 </script>
 <style>
@@ -66,7 +44,7 @@ html,body {
 }
 #stat {
 	position:absolute ;
-	width:40rem ;
+	width:50rem ;
 	height:2rem ;
 	background-color:black ;
 	color:white ;
@@ -84,7 +62,7 @@ stat>
 
 <!--reactive objects-->
 <a-entity id=reactive>
-	<div id=stat>SPATIAL SHELL playground v1.0  [stat {{stat_calls}}calls {{stat_poly}}△	]</div>
+	<div id=stat>SPATIAL SHELL viewer v1.1  [stat {{stat_calls}}calls {{stat_poly}}△	] <span id=msg></span></div>
 	
 	<!--app base -->
 	<a-entity id=base  position="0 0 0"  scale="1 1 1" rotation="0 0 0">
