@@ -46,11 +46,13 @@ update:async function(old) {
 		await this.viewer.removeSplatScene(0)
 	}
 	this.loadf = false 
+	const type = this.data.src.match(/spz$/)?3:2
+	const ss = type==3?1:-1 
 	this.viewer.addSplatScene(this.data.src, {
-		'format':2,
+		'format':type ,
 		'streamView':this.data.stream,
 		'rotation': new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0., -0., -0.).normalize(), new THREE.Vector3(0, 1, 0)).toArray(),
-		'scale': [this.data.scale, -this.data.scale, -this.data.scale],
+		'scale': [this.data.scale, ss*this.data.scale, ss*this.data.scale],
 		'position': [this.data.position.x, this.data.position.y, this.data.position.z]
 	})
 	 .then(() => {
