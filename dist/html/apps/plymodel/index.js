@@ -20,7 +20,7 @@ export default {
 	template: '<a-entity :scale="`${pscale} ${pscale} ${pscale}`" :position="ppos"><a-entity :splats="`src:${psrc};scale:1;stream:false;`"></a-entity></a-entity>'
 }
 const $ = (o) => document.querySelector(o) 
-import * as GaussianSplats3D from './gaussian-splats-3d.noth.module.js';
+import * as GaussianSplats3D from './gaussian-splats-3d.module.js';
 
 if(AFRAME.components['splats']) delete AFRAME.components['splats']
 AFRAME.registerComponent('splats', {

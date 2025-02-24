@@ -1,16 +1,5 @@
-//import * as THREE from 'three';
-//import { Ray as Ray$1, Plane, MathUtils, EventDispatcher, Vector3, MOUSE, TOUCH, Quaternion, Spherical, Vector2 } from 'three';
-
-const Ray$1 = THREE.Ray
-const Plane = THREE.Plane
-const MathUtils = THREE.MathUtils
-const EventDispatcher = THREE.EventDispatcher
-const Vector3 = THREE.Vector3
-const MOUSE = THREE.MOUSE
-const TOUCH = THREE.TOUCH
-const Quaternion = THREE.Quaternion
-const Spherical = THREE.Spherical
-const Vector2 = THREE.Vector2
+import * as THREE from 'three';
+import { Ray as Ray$1, Plane, MathUtils, EventDispatcher, Vector3, MOUSE, TOUCH, Quaternion, Spherical, Vector2 } from 'three';
 
 /**
  * AbortablePromise: A quick & dirty wrapper for JavaScript's Promise class that allows the underlying
