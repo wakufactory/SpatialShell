@@ -3,12 +3,21 @@
 <head>
 <meta charset="utf-8">
 <title>SPATIAL SHELL viewer</title>
-<script src="https://aframe.io/releases/1.6.0/aframe.min.js" crossorigin></script>
-<script src="js/grab2.js?2"></script>
+<script type="importmap">
+	{
+		"imports": {
+			"aframe": "https://aframe.io/releases/1.7.0/aframe.module.min.js",
+			"three": "https://cdn.jsdelivr.net/npm/super-three@0.173.4/build/three.module.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/super-three@0.173.4/examples/jsm/"
+		}
+	}
+</script>
 <script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
 <script type=module>
 const $ = (o)=>document.querySelector(o)
-import {APP} from './js/ssclient.js'
+import AFRAME from 'aframe' ;
+import {APP,SAPI} from './js/ssclient.js'
+import  './js/grab2.js' ;
 
 onload =  function() {
 	$('a-scene').addEventListener("loaded", ev=>{
