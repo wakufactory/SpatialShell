@@ -12,7 +12,7 @@
 		}
 	}
 </script>
-<script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js?1" crossorigin></script>
 <script type=module>
 import AFRAME from 'aframe' ;
 import {APP,SAPI} from './js/ssclient.js'
@@ -98,6 +98,7 @@ html,body {
 	width:100% ;
 	height:100% ;
 	margin:0 ;
+	background-color:black ;
 }
 #stat {
 	position:absolute ;
@@ -106,6 +107,9 @@ html,body {
 	background-color:black ;
 	color:white ;
 	z-index:100;
+}
+a-assets {
+	display:none ;
 }
 </style>
 </head>
