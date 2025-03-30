@@ -151,6 +151,14 @@ export const APP = Vue.createApp({
 						case "light":
 							if(pp=="default") this.light.default = p[pp]==true||p[pp]=='true'
 							break
+						case "cam":
+							const camrig = document.getElementById('camrig') ;
+							const pos = camrig.getAttribute("position") ;
+							if(pp=="posX") camrig.setAttribute("position",{x:p[pp],y:pos.y,z:pos.z})
+							if(pp=="posY") camrig.setAttribute("position",{x:pos.x,y:p[pp],z:pos.z})
+							if(pp=="posZ") camrig.setAttribute("position",{x:pos.x,y:pos.y,z:p[pp]})
+							if(pp=="rotY") camrig.setAttribute("rotation",{x:0,y:p[pp],z:0}) 
+							break ;
 					}
 				}
 			}

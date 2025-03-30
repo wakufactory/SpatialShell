@@ -56,7 +56,8 @@ app.use(Express.static(staticDir));
 // 環境状態 
 let env = {
 	bg:{kind:"default"},
-	light:{default:true}
+	light:{default:true},
+	cam:{}
 }
 // プロセス管理
 let pid = 1 	//プロセスid(連番)
