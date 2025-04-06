@@ -20,12 +20,9 @@ SPSHELL.registerComponent('st_imgload', {
 		type:"string"
 	},
 	init:function() {
-			console.log("init") 
-			console.log(this.el.components) 
 			this.assets = document.querySelector("a-assets")
 			this.planes = this.el.querySelectorAll("a-plane")
 			this.cam = document.querySelector("[camera]")
-			if(!this.cam.components.eye) this.cam.setAttribute("eye","")
 		},
 	update:function() {
 		this.id = crypto.randomUUID() 
@@ -64,22 +61,28 @@ SPSHELL.registerComponent('st_imgload', {
 					this.assets.appendChild(im1) 
 					this.imgdom = im1 			
 				})
-			}
-	})
+	}
+})
 // eye left and right 
 SPSHELL.registerComponent('eye',{
 		schema: {
 			default:""
 		},
 		init:function() {
+			if(!this.el.sceneEl.dataset.stereoEye) {
+				this.el.sceneEl.dataset.stereoEye = true 
+				this.cam = document.querySelector("[camera]")
+				this.cam.object3DMap.camera.layers.mask= this.el.sceneEl.is('vr-mode')?1:7
+				this.el.sceneEl.addEventListener("enter-vr", ev=>{ 
+					this.cam.object3DMap.camera.layers.mask=1
+				})
+				this.el.sceneEl.addEventListener("exit-vr", ev=>{ 
+					this.cam.object3DMap.camera.layers.mask=7
+				})
+			}
 		},
 		update:function(old) {
-			if(this.el.object3DMap.camera) {
-				if(this.data=="l"||this.data=="")
-					this.el.object3DMap.camera.layers.enable(1) 
-				if(this.data=="r"||this.data=="")
-					this.el.object3DMap.camera.layers.enable(2) 
-			} else 
+			if(this.el.object3DMap?.mesh)
 				this.el.object3DMap.mesh.layers.set(this.data==""?0:(this.data=="l"?1:2))
 		}
 	})
