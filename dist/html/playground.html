@@ -7,8 +7,8 @@
 	{
 		"imports": {
 			"aframe": "https://aframe.io/releases/1.7.1/aframe.module.min.js",
-			"three": "https://cdn.jsdelivr.net/npm/super-three@0.173.4/build/three.module.js",
-			"three/addons/": "https://cdn.jsdelivr.net/npm/super-three@0.173.4/examples/jsm/"
+			"three": "https://cdn.jsdelivr.net/npm/super-three@0.177/build/three.module.min.js",
+			"three/addons/": "https://cdn.jsdelivr.net/npm/super-three@0.177/examples/jsm/"
 		}
 	}
 </script>
@@ -20,7 +20,7 @@ import  './js/grab2.js' ;
 
 const $ = (o)=>document.querySelector(o)
 const DEBUG = true 
-const eventSource = new EventSource('/events');
+const eventSource = new EventSource('./events');
 
 let objs 
 // サーバからのpush API　
@@ -148,7 +148,7 @@ stat>
 	<!--camera-->
 	<a-entity id="camrig"  position="0 1.2 0" vrheight > 
 		<a-entity id="camera" camera  look-controls="magicWindowTrackingEnabled:false" 
-			wasd-controls="acceleration=1;fly:true;"></a-entity>
+			wasd-controls="acceleration=10;fly:true;"></a-entity>
 		<!--vr controller-->
 		<a-entity oculus-touch-controls="hand: left; model:false"  grab2 ></a-entity>
 		<a-entity oculus-touch-controls="hand: right; model:true"  grab2 ></a-entity>
