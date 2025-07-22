@@ -70,7 +70,7 @@ const API = (cmd,opt,param)=> {
 		if(opt!==null) params.append('commandopt', opt);
 		if(param !==null) for(let k in param) params.append(k,param[k]);
 	
-		fetch(`/api/${cmd}`, {
+		fetch(`./api/${cmd}`, {
 				method: 'POST',
 				headers: {
 						'Content-Type': 'application/x-www-form-urlencoded', // URLエンコード形式を指定
@@ -157,8 +157,8 @@ let app= createApp({
 }).mount('#reactive')
 
 window.SPSHELL = {registerComponent:()=>{}}	//dummy
-const adata = await import('./apps/instobj2.js')
-console.log(adata.default)
+//const adata = await import('./apps/instobj2.js')
+//console.log(adata.default)
 
 let procs = await API("procs",null,null)
 console.log(procs)
