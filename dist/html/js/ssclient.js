@@ -190,7 +190,7 @@ export const SAPI = {
 	get:(cmd,param={}) =>{
 		const pstr = new URLSearchParams(param).toString() 
 		return new Promise((resolve,reject)=>{
-			const path = `/api/${cmd}?${pstr}`
+			const path = `./api/${cmd}?${pstr}`
 			fetch( path , {
 				method:"GET"
 			}).then( async resp=>{
