@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html  lang="jp">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width">
+<title>Controller - SpatialShell </title>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js" crossorigin></script>
+<script>
+
+</script>
+<link rel="stylesheet" type="text/css" href="">
+<style type="text/css">
+body,html {
+	display:flex ;
+	width:100%;
+	height:100% ;
+	margin: 0;
+	background-color:#555 ;
+	color:white ;
+	font-family: serif ;
+	font-size:18px ;
+	box-sizing:border-box ;
+}
+div.ui {
+	width:cacl(100% - 1rem);
+	margin-top:0.5rem ;
+	margin-left:1rem ;
+}
+[v-cloak] {
+	display: none;
+}
+span.uis {
+	margin-left:0.5rem ;
+}
+tr.focus {
+	background-color:#644 ;
+}
+input[type="range"] {
+	width:600px ;
+}
+#debug {
+	display:none ;
+}
+</style>
+</head>
+<body>
+<div id=reactive>
+<div id=debug class=ui>
+	<textarea id=msg readonly v-cloak >{{message}}</textarea>
+	<button @click="reload">CONFIG RELOAD</button>
+</div>
+<h2>SpatialShell instances</h2>
+<div class=ui>
+	<table>
+		<tr v-for="(inst,index) of inst_list"
+			:class="inst.focus?'focus':''">
+			<td>{{localtime(inst.pid)}}</td><td>{{inst.app}}</td><td><button @click="focus(index)">SELECT</button></td></tr>
+	</table>
+	scale:<input type=range min=1 max=1000 step=1 v-model="instsize" @input="ev_instsize"><span>{{parseFloat(instsize/100,2)}}</span><br/>
+
+	<button @click="delobj()">REMOVE</button>
+</div>
+</div>
+</body>
+<script type="module">
+
+const API = (cmd,opt,param)=> {
+	return new Promise((resolve,reject) => {
+		const params = new URLSearchParams();
+		if(opt!==null) params.append('commandopt', opt);
+		if(param !==null) for(let k in param) params.append(k,param[k]);
+	
+		fetch(`/api/${cmd}`, {
+				method: 'POST',
+				headers: {
+						'Content-Type': 'application/x-www-form-urlencoded', // URLエンコード形式を指定
+				},
+				body: params.toString() // URLエンコード済みの文字列を設定
+		})
+		.then(response => {
+				if (!response.ok) {
+						throw new Error(`HTTP error! status: ${response.status}`);
+				}
+				return response.json(); // レスポンスをJSON形式で解析
+		})
+		.then(data => {
+				console.log('Success:', data);
+				resolve(data) 
+		})
+		.catch(error => {
+				console.error('Error:', error);
+		});
+		
+	})
+}
+
+const { createApp } = Vue
+let app= createApp({
+	data() {
+		return {
+			message: 'Hello Spatial Shell!',
+			inst_list:[],
+			focus_idx:null,
+			instsize:100,
+			pined:false 		
+		}
+	},
+	methods:{
+		async reload() {
+		},
+		delobj(idx=null) {
+			if(idx===null) {
+				idx = this.focus_idx 
+				this.focus_idx  = null
+			}
+			if(idx===null) return 
+			console.log("del "+idx) 
+			const inst = this.inst_list[idx]
+			API("kill",inst.pid)
+			app.message = "remove "+inst.pid 
+			this.inst_list.splice(idx,1)
+		},
+		focus(idx) {
+			console.log("focus "+idx) 
+			const inst = this.inst_list[idx]
+			this.inst_list[idx].focus = true
+			for(let i in this.inst_list) {
+				const il = this.inst_list[i]
+				il.focus = i==idx 
+//				il.app.hcolor = (i==idx)?(il.pined?"#f8f":"#f88"):"#ccc" 
+			}
+			this.focus_idx = idx 
+			this.instsize = (this.inst_list[this.focus_idx].param.cscale||1)*100
+			this.pined = this.inst_list[this.focus_idx].pined
+			app.message = "focus "+this.inst_list[this.focus_idx].app 
+		},
+		pinobj(ev) {
+			console.log(this.pined)
+			this.inst_list[this.focus_idx].pined = this.pined 
+		},
+		ev_instsize(ev) {
+			console.log(ev) 
+			if(this.inst_list[this.focus_idx]) {
+				const val = ev.target.value/100
+				const ins = this.inst_list[this.focus_idx]
+				ins.scale = val 
+				API("param",ins.pid,{cscale:val})
+			} 
+		},
+		localtime(utime) {
+			return utime 
+			let  dt = new Date() 
+			dt.setTime(utime-dt.getTimezoneOffset()*60000)
+			return dt.toISOString().substr(11,8)
+		}
+	}
+}).mount('#reactive')
+
+window.SPSHELL = {registerComponent:()=>{}}	//dummy
+const adata = await import('./apps/instobj2.js')
+console.log(adata.default)
+
+let procs = await API("procs",null,null)
+console.log(procs)
+app.inst_list = procs.procs
+</script>
+
+</html>
