@@ -64,7 +64,7 @@ let pid = 1 	//プロセスid(連番)
 let procs = [] //プロセスリスト
 
 // ソースファイルの監視
-const watcher = Chokidar.watch([], {persistent: true});
+const watcher = Chokidar.watch([], {persistent: true, useFsEvents: false});
 const watchfile = {} 
 watcher.on('change', path => {
 	console.log(`File ${path} has been changed`)
